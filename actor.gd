@@ -11,18 +11,25 @@ const DEADZONE := 0.15
 
 var joystick: Node = null
 var camera: Camera3D = null
-var recorder: Node = null
+var time_controlled: bool = false
 var _jump_queued := false
 
+func _should_accept_input() -> bool:
+	return not time_controlled
+
 func queue_jump() -> void:
+	if not _should_accept_input():
+		return
 	_jump_queued = true
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not _should_accept_input():
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
 		queue_jump()
 
 func _physics_process(delta: float) -> void:
-	if recorder and recorder.is_rewinding:
+	if not _should_accept_input():
 		return
 
 	if not is_on_floor():
