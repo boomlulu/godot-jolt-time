@@ -10,8 +10,20 @@ var current_time: float = 0.0
 var _entries: Array = []
 
 func _physics_process(_delta: float) -> void:
-	if record_enabled and target and Rewindable.has_motion(target, MOTION_EPSILON):
+	if not record_enabled or not target:
+		return
+	if _has_state_change():
 		_record_now()
+
+func _has_state_change() -> bool:
+	if _entries.is_empty():
+		return true
+	var last: StateFrame = _entries.back()
+	if not last.transform.is_equal_approx(target.global_transform):
+		return true
+	if Rewindable.has_motion(target, MOTION_EPSILON):
+		return true
+	return false
 
 func _record_now() -> void:
 	while not _entries.is_empty():

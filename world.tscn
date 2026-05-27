@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://cworld3dscenev1a"]
+[gd_scene load_steps=45 format=3 uid="uid://cworld3dscenev1a"]
 
 [ext_resource type="Script" path="res://world.gd" id="1_world"]
 [ext_resource type="Script" path="res://actor.gd" id="2_actor"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://timeline_bar.gd" id="8_timeline"]
 [ext_resource type="Script" path="res://timeline.gd" id="9_tlcore"]
 [ext_resource type="Script" path="res://ghost_trail.gd" id="10_ghost"]
+[ext_resource type="Script" path="res://observer_camera.gd" id="11_observer"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 
@@ -298,6 +299,11 @@ transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 
 script = ExtResource("3_camera")
 fov = 60.0
 
+[node name="ObserverCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 7, 7)
+script = ExtResource("11_observer")
+fov = 60.0
+
 [node name="HUD" type="CanvasLayer" parent="."]
 
 [node name="Joystick" type="Control" parent="HUD"]
@@ -357,6 +363,18 @@ offset_left = -200.0
 offset_top = -280.0
 offset_right = -40.0
 offset_bottom = -220.0
+
+[node name="EyeButton" type="Button" parent="HUD"]
+script = ExtResource("7_rewbtn")
+text = "视角"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -360.0
+offset_right = -40.0
+offset_bottom = -300.0
 
 [node name="TimerLabel" type="Label" parent="HUD"]
 anchor_left = 0.5

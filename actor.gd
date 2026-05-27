@@ -4,7 +4,6 @@ const SPEED := 5.0
 const JUMP_VELOCITY := 6.0
 const GRAVITY := 18.0
 const PUSH_FORCE := 15.0
-const ROT_SMOOTH := 12.0
 const ACCEL := 28.0
 const DECEL := 32.0
 const DEADZONE := 0.15
@@ -18,9 +17,12 @@ func _should_accept_input() -> bool:
 	return not time_controlled
 
 func queue_jump() -> void:
-	if not _should_accept_input():
+	if not is_on_floor():
 		return
 	_jump_queued = true
+
+func has_pending_jump() -> bool:
+	return _jump_queued
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _should_accept_input():
@@ -89,6 +91,4 @@ func _physics_process(delta: float) -> void:
 			(other as RigidBody3D).apply_central_force(-c.get_normal() * PUSH_FORCE)
 
 	if camera and "yaw_deg" in camera:
-		var target_yaw := deg_to_rad(camera.yaw_deg)
-		var t := 1.0 - exp(-ROT_SMOOTH * delta)
-		rotation.y = lerp_angle(rotation.y, target_yaw, t)
+		rotation.y = deg_to_rad(camera.yaw_deg)
