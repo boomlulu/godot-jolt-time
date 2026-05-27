@@ -14,20 +14,22 @@ func sync_from(yaw_init: float, pitch_init: float = 45.0) -> void:
 	yaw_deg = yaw_init
 	pitch_deg = pitch_init
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not is_current():
 		return
 	if event is InputEventScreenDrag:
 		_apply_drag(event.relative.x, event.relative.y)
+		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)):
 		_apply_drag(event.relative.x, event.relative.y)
+		get_viewport().set_input_as_handled()
 
 func _apply_drag(dx: float, dy: float) -> void:
 	yaw_deg -= dx * YAW_SENSITIVITY
-	pitch_deg = clampf(pitch_deg + dy * PITCH_SENSITIVITY, PITCH_MIN, PITCH_MAX)
+	pitch_deg = clampf(pitch_deg - dy * PITCH_SENSITIVITY, PITCH_MIN, PITCH_MAX)
 
 func _process(_delta: float) -> void:
-	if not target:
+	if not target or not is_current():
 		return
 	var pitch := deg_to_rad(pitch_deg)
 	var yaw := deg_to_rad(yaw_deg)
