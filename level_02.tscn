@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://dbri5bn22ixnx"]
+
+[ext_resource type="Script" path="res://level_02.gd" id="1_lv02"]
+[ext_resource type="Script" path="res://touch_button.gd" id="2_touchbtn"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lv02"]
+sky_horizon_color = Color(0.6, 0.7, 0.9, 1)
+ground_horizon_color = Color(0.4, 0.5, 0.6, 1)
+
+[sub_resource type="Sky" id="Sky_lv02"]
+sky_material = SubResource("ProceduralSkyMaterial_lv02")
+
+[sub_resource type="Environment" id="Environment_lv02"]
+background_mode = 2
+sky = SubResource("Sky_lv02")
+ambient_light_source = 3
+ambient_light_energy = 0.5
+
+[node name="Level02" type="Node3D"]
+script = ExtResource("1_lv02")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lv02")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+fov = 60.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -60.0
+offset_right = 240.0
+offset_bottom = 60.0
+text = "下一关
+（制作中）"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 56
+
+[node name="BackButton" type="Button" parent="HUD"]
+script = ExtResource("2_touchbtn")
+text = "返回"
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = 80.0

@@ -3,6 +3,7 @@ extends Node
 const HISTORY_DURATION := 3.0
 const GHOST_COUNT := 6
 const GHOST_INTERVAL := HISTORY_DURATION / float(GHOST_COUNT)
+const MOTION_EPSILON := 0.05
 
 var target: Node3D = null
 var is_rewinding := false
@@ -34,6 +35,12 @@ func _physics_process(delta: float) -> void:
 				(target as RigidBody3D).angular_velocity = frame.av
 			elif target is CharacterBody3D:
 				(target as CharacterBody3D).velocity = frame.lv
+			if _buffer.is_empty():
+				if target is RigidBody3D:
+					(target as RigidBody3D).linear_velocity = Vector3.ZERO
+					(target as RigidBody3D).angular_velocity = Vector3.ZERO
+				elif target is CharacterBody3D:
+					(target as CharacterBody3D).velocity = Vector3.ZERO
 	else:
 		var lv := Vector3.ZERO
 		var av := Vector3.ZERO
@@ -42,12 +49,14 @@ func _physics_process(delta: float) -> void:
 			av = (target as RigidBody3D).angular_velocity
 		elif target is CharacterBody3D:
 			lv = (target as CharacterBody3D).velocity
-		_buffer.append({"t": target.global_transform, "lv": lv, "av": av})
-		if _buffer.size() > _max_size:
-			_buffer.pop_front()
+		var has_motion := lv.length() > MOTION_EPSILON or av.length() > MOTION_EPSILON
+		if has_motion:
+			_buffer.append({"t": target.global_transform, "lv": lv, "av": av})
+			if _buffer.size() > _max_size:
+				_buffer.pop_front()
 
 		_game_time += delta
-		if _game_time >= _next_spawn_time:
+		if has_motion and _game_time >= _next_spawn_time:
 			_ghosts.append({"xf": target.global_transform, "spawn": _game_time})
 			_next_spawn_time = _game_time + GHOST_INTERVAL
 			if _ghosts.size() > GHOST_COUNT:
@@ -94,3 +103,6 @@ func get_progress() -> float:
 		return 0.0
 	var consumed := _rewind_start_size - _buffer.size()
 	return clampf(float(consumed) / float(_rewind_start_size), 0.0, 1.0)
+
+func is_actively_rewinding() -> bool:
+	return is_rewinding and not _buffer.is_empty()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://cworld3dscenev1a"]
+[gd_scene load_steps=42 format=3 uid="uid://cworld3dscenev1a"]
 
 [ext_resource type="Script" path="res://world.gd" id="1_world"]
 [ext_resource type="Script" path="res://actor.gd" id="2_actor"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://touch_button.gd" id="5_touchbtn"]
 [ext_resource type="Script" path="res://rewind_recorder.gd" id="6_rewind"]
 [ext_resource type="Script" path="res://rewind_button.gd" id="7_rewbtn"]
+[ext_resource type="Script" path="res://timeline_bar.gd" id="8_timeline"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 
@@ -100,6 +101,34 @@ instance_count = 6
 visible_instance_count = 0
 mesh = SubResource("BoxMesh_ghost_box")
 
+[sub_resource type="BoxMesh" id="BoxMesh_door_panel"]
+size = Vector3(0.1, 2.0, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door_lintel"]
+size = Vector3(0.4, 0.15, 1.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door_handle"]
+size = Vector3(0.07, 0.15, 0.07)
+
+[sub_resource type="BoxShape3D" id="BoxShape_door_trigger"]
+size = Vector3(0.7, 2.2, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_door_panel"]
+albedo_color = Color(0.55, 0.35, 0.18, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="Mat_door_frame"]
+albedo_color = Color(0.35, 0.22, 0.1, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_door_handle"]
+albedo_color = Color(0.9, 0.75, 0.2, 1)
+metallic = 0.6
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.4, 0.3, 0.1, 1)
+emission_energy_multiplier = 0.2
+
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
 
@@ -150,15 +179,47 @@ surface_material_override/0 = SubResource("Mat_wall")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
 shape = SubResource("BoxShape_wall_z14")
 
-[node name="WallEast" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1.5, 0)
+[node name="WallEastUpper" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1.5, -4)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
-mesh = SubResource("BoxMesh_wall_z14")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEastUpper"]
+mesh = SubResource("BoxMesh_divider_z6")
 surface_material_override/0 = SubResource("Mat_wall")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
-shape = SubResource("BoxShape_wall_z14")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEastUpper"]
+shape = SubResource("BoxShape_divider_z6")
+
+[node name="WallEastLower" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1.5, 4)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEastLower"]
+mesh = SubResource("BoxMesh_divider_z6")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEastLower"]
+shape = SubResource("BoxShape_divider_z6")
+
+[node name="Door" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1, 0)
+
+[node name="DoorPanel" type="MeshInstance3D" parent="Door"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 0, 0)
+mesh = SubResource("BoxMesh_door_panel")
+surface_material_override/0 = SubResource("Mat_door_panel")
+
+[node name="DoorLintel" type="MeshInstance3D" parent="Door"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.075, 0)
+mesh = SubResource("BoxMesh_door_lintel")
+surface_material_override/0 = SubResource("Mat_door_frame")
+
+[node name="DoorHandle" type="MeshInstance3D" parent="Door"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, -0.1, 0.45)
+mesh = SubResource("BoxMesh_door_handle")
+surface_material_override/0 = SubResource("Mat_door_handle")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Door"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0, 0)
+shape = SubResource("BoxShape_door_trigger")
 
 [node name="DividerUpper" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4)
@@ -277,33 +338,96 @@ offset_bottom = 80.0
 [node name="ActorRewindButton" type="Button" parent="HUD"]
 script = ExtResource("7_rewbtn")
 text = "回退人物"
-offset_left = 40.0
-offset_top = 40.0
-offset_right = 200.0
-offset_bottom = 100.0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -280.0
+offset_right = -40.0
+offset_bottom = -220.0
 
 [node name="BoxRewindButton" type="Button" parent="HUD"]
 script = ExtResource("7_rewbtn")
 text = "回退道具"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -150.0
+offset_right = -220.0
+offset_bottom = -90.0
+
+[node name="TimerLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 30.0
+offset_right = 180.0
+offset_bottom = 120.0
+text = "00:30:000"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+
+[node name="TimelineBar" type="Control" parent="HUD"]
+script = ExtResource("8_timeline")
+anchor_right = 1.0
 offset_left = 40.0
-offset_top = 110.0
-offset_right = 200.0
-offset_bottom = 170.0
-
-[node name="ActorProgressBar" type="ProgressBar" parent="HUD"]
-offset_left = 220.0
-offset_top = 50.0
-offset_right = 720.0
-offset_bottom = 90.0
-max_value = 100.0
-step = 0.1
-show_percentage = false
-
-[node name="BoxProgressBar" type="ProgressBar" parent="HUD"]
-offset_left = 220.0
-offset_top = 120.0
-offset_right = 720.0
+offset_top = 130.0
+offset_right = -40.0
 offset_bottom = 160.0
-max_value = 100.0
-step = 0.1
-show_percentage = false
+
+[node name="GameOverDialog" type="AcceptDialog" parent="HUD"]
+process_mode = 3
+title = "游戏结束"
+size = Vector2i(420, 200)
+ok_button_text = "重新开始"
+dialog_text = "时间到，游戏结束"
+
+[node name="GMButton" type="Button" parent="HUD"]
+script = ExtResource("5_touchbtn")
+text = "GM"
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 120.0
+offset_bottom = 100.0
+
+[node name="GMPanel" type="Control" parent="HUD"]
+visible = false
+mouse_filter = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Backdrop" type="ColorRect" parent="HUD/GMPanel"]
+mouse_filter = 0
+color = Color(0, 0, 0, 0.6)
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CenterBox" type="PanelContainer" parent="HUD/GMPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -200.0
+offset_right = 240.0
+offset_bottom = 200.0
+
+[node name="VBox" type="VBoxContainer" parent="HUD/GMPanel/CenterBox"]
+
+[node name="TitleLabel" type="Label" parent="HUD/GMPanel/CenterBox/VBox"]
+text = "GM 面板 - 选择关卡"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="LevelButtons" type="VBoxContainer" parent="HUD/GMPanel/CenterBox/VBox"]
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="HUD/GMPanel/CenterBox/VBox"]
+script = ExtResource("5_touchbtn")
+text = "关闭"
+custom_minimum_size = Vector2(0, 60)
