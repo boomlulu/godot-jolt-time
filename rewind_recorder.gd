@@ -55,7 +55,6 @@ func _physics_process(delta: float) -> void:
 			if _buffer.size() > _max_size:
 				_buffer.pop_front()
 
-		_game_time += delta
 		if has_motion and _game_time >= _next_spawn_time:
 			_ghosts.append({"xf": target.global_transform, "spawn": _game_time})
 			_next_spawn_time = _game_time + GHOST_INTERVAL
@@ -72,6 +71,12 @@ func _update_trail() -> void:
 		var oldest: Dictionary = _ghosts[0]
 		if _game_time - float(oldest.spawn) >= HISTORY_DURATION:
 			_ghosts.pop_front()
+		else:
+			break
+	while not _ghosts.is_empty():
+		var newest: Dictionary = _ghosts[_ghosts.size() - 1]
+		if float(newest.spawn) > _game_time:
+			_ghosts.pop_back()
 		else:
 			break
 	var n := _ghosts.size()
@@ -103,6 +108,12 @@ func get_progress() -> float:
 		return 0.0
 	var consumed := _rewind_start_size - _buffer.size()
 	return clampf(float(consumed) / float(_rewind_start_size), 0.0, 1.0)
+
+func tick_game_time(delta: float) -> void:
+	_game_time = maxf(0.0, _game_time + delta)
+	if _next_spawn_time > _game_time + GHOST_INTERVAL:
+		_next_spawn_time = _game_time + GHOST_INTERVAL
+
 
 func is_actively_rewinding() -> bool:
 	return is_rewinding and not _buffer.is_empty()

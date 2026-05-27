@@ -64,13 +64,19 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _game_over:
 		return
+	var tick_dt := 0.0
 	if _actor_recorder.is_actively_rewinding():
 		_timer = minf(_timer + delta, TIMER_START)
+		tick_dt = -delta
 	elif _is_player_inputting():
 		_timer -= delta
 		if _timer <= 0.0:
 			_timer = 0.0
 			_trigger_game_over()
+		tick_dt = delta
+	if tick_dt != 0.0:
+		_actor_recorder.tick_game_time(tick_dt)
+		_box_recorder.tick_game_time(tick_dt)
 	_update_timer_label()
 	_hud_timeline.set_state(TIMER_START - _timer, _actor_recorder.is_rewinding)
 
