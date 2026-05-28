@@ -4,13 +4,13 @@ extends BaseLevel
 @onready var _pushbox: RigidBody3D = $PushBox
 @onready var _camera: Camera3D = $Camera3D
 @onready var _observer_camera: Camera3D = $ObserverCamera
-@onready var _hud_joystick: Control = $HUD/Joystick
+@onready var _hud_joystick: Control = $HUD/HUDBase/Joystick
 @onready var _hud_jump: Button = $HUD/JumpButton
 @onready var _hud_rewind: Button = $HUD/RewindButton
 @onready var _hud_eye: Button = $HUD/EyeButton
-@onready var _hud_timer: Label = $HUD/TimerLabel
-@onready var _hud_tips: Label = $HUD/TipsLabel
-@onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
+@onready var _hud_timer: Label = $HUD/HUDBase/TimerLabel
+@onready var _hud_tips: Label = $HUD/HUDBase/TipsLabel
+@onready var _hud_dialog: AcceptDialog = $HUD/HUDBase/GameOverDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
 @onready var _actor_recorder: Recorder = $Actor/Recorder
 @onready var _box_recorder: Recorder = $PushBox/Recorder
@@ -50,6 +50,7 @@ func _ready() -> void:
 	_hud_dialog.confirmed.connect(_on_restart)
 	_timeline.drag_state_changed.connect(_on_drag_state_changed)
 	_hud_timeline.bind_timeline(_timeline)
+	_hud_timer.bind_timeline(_timeline)
 	_hud_tips.visible = false
 	_timeline.push_visuals()
 

@@ -5,9 +5,9 @@ const BugReport := preload("res://bug_report.gd")
 const GameSettings := preload("res://game_settings.gd")
 const LevelsRegistry := preload("res://levels_registry.gd")
 
-@onready var _gm_panel = $HUD/GMPanel
-@onready var _hud_bug: Button = $HUD/BugReportButton
-@onready var _hud_exit: Button = $HUD/ExitButton
+@onready var _gm_panel = $HUD/HUDBase/GMPanel
+@onready var _hud_bug: Button = $HUD/HUDBase/BugReportButton
+@onready var _hud_exit: Button = $HUD/HUDBase/ExitButton
 @onready var _actor: CharacterBody3D = $Actor
 @onready var _door: Area3D = $Door
 

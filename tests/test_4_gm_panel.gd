@@ -53,10 +53,10 @@ func _test_4_levels_have_gm_panel(runner: Node) -> void:
 		var inst = packed.instantiate()
 		runner.add_child(inst)
 		await runner.get_tree().physics_frame
-		var has_gm: bool = inst.has_node("HUD/GMPanel")
+		var has_gm: bool = inst.has_node("HUD/HUDBase/GMPanel")
 		if not has_gm:
 			all_ok = false
-		var gm = inst.get_node_or_null("HUD/GMPanel")
+		var gm = inst.get_node_or_null("HUD/HUDBase/GMPanel")
 		if gm != null:
 			var level_buttons = gm.get_node_or_null("PanelOverlay/CenterBox/VBox/LevelButtons")
 			if level_buttons == null or level_buttons.get_child_count() != 3:

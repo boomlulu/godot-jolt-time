@@ -5,14 +5,14 @@ extends BaseLevel
 @onready var _pushbox: RigidBody3D = $PushBox
 @onready var _camera: Camera3D = $Camera3D
 @onready var _observer_camera: Camera3D = $ObserverCamera
-@onready var _hud_joystick: Control = $HUD/Joystick
+@onready var _hud_joystick: Control = $HUD/HUDBase/Joystick
 @onready var _hud_jump: Button = $HUD/JumpButton
 @onready var _hud_actor_rewind: Button = $HUD/ActorRewindButton
 @onready var _hud_box_rewind: Button = $HUD/BoxRewindButton
 @onready var _hud_eye: Button = $HUD/EyeButton
-@onready var _hud_timer: Label = $HUD/TimerLabel
-@onready var _hud_tips: Label = $HUD/TipsLabel
-@onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
+@onready var _hud_timer: Label = $HUD/HUDBase/TimerLabel
+@onready var _hud_tips: Label = $HUD/HUDBase/TipsLabel
+@onready var _hud_dialog: AcceptDialog = $HUD/HUDBase/GameOverDialog
 @onready var _hud_actor_timeline: Control = $HUD/ActorTimelineBar
 @onready var _hud_box_timeline: Control = $HUD/BoxTimelineBar
 @onready var _hud_key_status: Label = $HUD/KeyStatusLabel
@@ -68,6 +68,7 @@ func _ready() -> void:
 	_box_timeline.drag_state_changed.connect(_on_box_drag_state_changed)
 	_hud_actor_timeline.bind_timeline(_actor_timeline)
 	_hud_box_timeline.bind_timeline(_box_timeline)
+	_hud_timer.bind_timeline(_actor_timeline)
 	_hud_tips.visible = false
 	_hud_key_status.visible = false
 	_hud_door_locked.visible = false

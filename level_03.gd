@@ -4,12 +4,12 @@ const FALL_DEATH_Y := -5.0
 
 @onready var _item_timeline: Timeline = $ItemTimeline
 @onready var _camera: Camera3D = $Camera3D
-@onready var _hud_joystick: Control = $HUD/Joystick
+@onready var _hud_joystick: Control = $HUD/HUDBase/Joystick
 @onready var _hud_rewind: Button = $HUD/RewindButton
 @onready var _hud_pause: Button = $HUD/PauseButton
-@onready var _hud_timer: Label = $HUD/TimerLabel
-@onready var _hud_tips: Label = $HUD/TipsLabel
-@onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
+@onready var _hud_timer: Label = $HUD/HUDBase/TimerLabel
+@onready var _hud_tips: Label = $HUD/HUDBase/TipsLabel
+@onready var _hud_dialog: AcceptDialog = $HUD/HUDBase/GameOverDialog
 @onready var _hud_win: AcceptDialog = $HUD/WinDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
 
@@ -65,6 +65,7 @@ func _ready() -> void:
 	_hud_dialog.confirmed.connect(_on_restart)
 	_hud_win.confirmed.connect(_on_win_confirmed)
 	_hud_timeline.bind_timeline(_item_timeline)
+	_hud_timer.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
 	_item_timeline.push_visuals()
 
