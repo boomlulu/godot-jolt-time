@@ -25,14 +25,14 @@ sky = SubResource("Sky_lv03")
 ambient_light_source = 3
 ambient_light_energy = 0.5
 
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
-size = Vector3(4, 0.2, 30)
+[sub_resource type="BoxMesh" id="BoxMesh_platform_floor"]
+size = Vector3(4, 0.2, 7)
 
-[sub_resource type="BoxShape3D" id="BoxShape_floor"]
-size = Vector3(4, 0.2, 30)
+[sub_resource type="BoxShape3D" id="BoxShape_platform_floor"]
+size = Vector3(4, 0.2, 7)
 
 [sub_resource type="StandardMaterial3D" id="Mat_floor"]
-albedo_color = Color(0.42, 0.42, 0.48, 1)
+albedo_color = Color(0.55, 0.55, 0.55, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall_long"]
 size = Vector3(0.2, 3, 30)
@@ -71,13 +71,10 @@ size = Vector3(0.3, 0.25, 0.15)
 albedo_color = Color(0.95, 0.2, 0.2, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_item"]
-size = Vector3(1, 1, 1)
+size = Vector3(1.5, 0.4, 1.5)
 
 [sub_resource type="BoxShape3D" id="BoxShape_item"]
-size = Vector3(1, 1, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape_item_hit"]
-size = Vector3(1.1, 1.1, 1.1)
+size = Vector3(1.5, 0.4, 1.5)
 
 [sub_resource type="StandardMaterial3D" id="Mat_item"]
 albedo_color = Color(1, 0.55, 0.15, 1)
@@ -93,7 +90,7 @@ albedo_color = Color(1, 1, 1, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_ghost_item"]
 material = SubResource("Mat_ghost")
-size = Vector3(1, 1, 1)
+size = Vector3(1.5, 0.4, 1.5)
 
 [sub_resource type="MultiMesh" id="ItemGhostMM1"]
 transform_format = 1
@@ -142,15 +139,25 @@ environment = SubResource("Environment_lv03")
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Floor" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+[node name="StartPlatform" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -11.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("BoxMesh_floor")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StartPlatform"]
+mesh = SubResource("BoxMesh_platform_floor")
 surface_material_override/0 = SubResource("Mat_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
-shape = SubResource("BoxShape_floor")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StartPlatform"]
+shape = SubResource("BoxShape_platform_floor")
+
+[node name="EndPlatform" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 11.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EndPlatform"]
+mesh = SubResource("BoxMesh_platform_floor")
+surface_material_override/0 = SubResource("Mat_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EndPlatform"]
+shape = SubResource("BoxShape_platform_floor")
 
 [node name="WallWest" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, 0)
@@ -237,9 +244,10 @@ freeze = true
 freeze_mode = 1
 script = ExtResource("11_item")
 home_x = 0.0
+home_y = 1.0
 home_z = -5.0
-amplitude = 1.4
-frequency_hz = 0.45
+amplitude = 1.5
+frequency_hz = 0.25
 phase = 0.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item1"]
@@ -249,11 +257,6 @@ surface_material_override/0 = SubResource("Mat_item")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Item1"]
 shape = SubResource("BoxShape_item")
 
-[node name="HitBox" type="Area3D" parent="Item1"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Item1/HitBox"]
-shape = SubResource("BoxShape_item_hit")
-
 [node name="Recorder" type="Node" parent="Item1"]
 script = ExtResource("6_rewind")
 
@@ -261,7 +264,7 @@ script = ExtResource("6_rewind")
 script = ExtResource("10_ghost")
 
 [node name="Item2" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1, 0)
 mass = 1.5
 linear_damp = 2.0
 angular_damp = 4.0
@@ -269,9 +272,10 @@ freeze = true
 freeze_mode = 1
 script = ExtResource("11_item")
 home_x = 0.0
+home_y = 1.0
 home_z = 0.0
-amplitude = 1.4
-frequency_hz = 0.6
+amplitude = 1.5
+frequency_hz = 0.35
 phase = 1.5707963
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item2"]
@@ -280,11 +284,6 @@ surface_material_override/0 = SubResource("Mat_item")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Item2"]
 shape = SubResource("BoxShape_item")
-
-[node name="HitBox" type="Area3D" parent="Item2"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Item2/HitBox"]
-shape = SubResource("BoxShape_item_hit")
 
 [node name="Recorder" type="Node" parent="Item2"]
 script = ExtResource("6_rewind")
@@ -301,9 +300,10 @@ freeze = true
 freeze_mode = 1
 script = ExtResource("11_item")
 home_x = 0.0
+home_y = 1.0
 home_z = 5.0
-amplitude = 1.4
-frequency_hz = 0.35
+amplitude = 1.5
+frequency_hz = 0.30
 phase = 3.1415927
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item3"]
@@ -312,11 +312,6 @@ surface_material_override/0 = SubResource("Mat_item")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Item3"]
 shape = SubResource("BoxShape_item")
-
-[node name="HitBox" type="Area3D" parent="Item3"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Item3/HitBox"]
-shape = SubResource("BoxShape_item_hit")
 
 [node name="Recorder" type="Node" parent="Item3"]
 script = ExtResource("6_rewind")
@@ -392,7 +387,7 @@ offset_left = -180.0
 offset_top = 30.0
 offset_right = 180.0
 offset_bottom = 120.0
-text = "00:15:000"
+text = "00:20:000"
 horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 64

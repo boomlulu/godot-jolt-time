@@ -8,7 +8,8 @@ const LEVELS := [
 	{"name": "第三关", "scene": "res://level_03.tscn"},
 ]
 
-const TIMER_START := 15.0
+const TIMER_START := 20.0
+const FALL_DEATH_Y := -5.0
 
 @onready var _item_timeline: Timeline = $ItemTimeline
 @onready var _actor: CharacterBody3D = $Actor
@@ -39,9 +40,6 @@ const TIMER_START := 15.0
 @onready var _item1_trail: MultiMeshInstance3D = $ItemTrail1
 @onready var _item2_trail: MultiMeshInstance3D = $ItemTrail2
 @onready var _item3_trail: MultiMeshInstance3D = $ItemTrail3
-@onready var _item1_hit: Area3D = $Item1/HitBox
-@onready var _item2_hit: Area3D = $Item2/HitBox
-@onready var _item3_hit: Area3D = $Item3/HitBox
 
 var _rewind_held: bool = false
 var _door_triggered: bool = false
@@ -49,12 +47,17 @@ var _countdown: float = TIMER_START
 var _game_over: bool = false
 var _won: bool = false
 
+var _items: Array = []
+var _riding_platform: RigidBody3D = null
+var _riding_last_x: float = 0.0
+
 func _ready() -> void:
 	_actor.joystick = _hud_joystick
 	_actor.camera = _camera
 	_camera.target = _actor
 
 	# items setup
+	_items = [_item1, _item2, _item3]
 	var trail_color := Color(1.0, 0.7, 0.3, 1.0)
 	for entry in [
 		{"rec": _item1_recorder, "gt": _item1_ghost_trail, "rb": _item1, "tr": _item1_trail},
@@ -77,9 +80,6 @@ func _ready() -> void:
 	_hud_gm_button.pressed.connect(_on_gm_open)
 	_hud_gm_close.pressed.connect(_on_gm_close)
 	_door.body_entered.connect(_on_door_entered)
-	_item1_hit.body_entered.connect(_on_item_hit)
-	_item2_hit.body_entered.connect(_on_item_hit)
-	_item3_hit.body_entered.connect(_on_item_hit)
 	_hud_timeline.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
 	_populate_levels()
@@ -92,6 +92,41 @@ func _physics_process(delta: float) -> void:
 	_camera.tick_yaw(delta)
 	_item_timeline.rewind_held = _rewind_held
 	_tick_item_timeline(delta)
+	_carry_actor_on_platform()
+
+func _carry_actor_on_platform() -> void:
+	# delta-based carry: 玩家踩在 platform 上时跟随 platform 的 x 平移
+	# 时机：在 platform _physics_process 推进之后调用，此时 platform 已到新位置
+	var current_ride := _detect_ride()
+	if current_ride != null and current_ride == _riding_platform:
+		var dx: float = current_ride.global_position.x - _riding_last_x
+		if absf(dx) > 0.0:
+			_actor.global_position.x += dx
+	_riding_platform = current_ride
+	if current_ride != null:
+		_riding_last_x = current_ride.global_position.x
+
+func _detect_ride() -> RigidBody3D:
+	# 从 actor 脚底向下射线检测，命中的若是已知 platform 则返回
+	var space := _actor.get_world_3d().direct_space_state
+	var from := _actor.global_position + Vector3(0, 0.1, 0)
+	var to := _actor.global_position + Vector3(0, -0.6, 0)
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [_actor.get_rid()]
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return null
+	var body = hit.collider
+	for item in _items:
+		if item == body:
+			return item
+	return null
+
+func _check_fall_off() -> void:
+	if _game_over or _won:
+		return
+	if _actor.global_position.y < FALL_DEATH_Y:
+		_trigger_game_over("掉下深坑，游戏结束")
 
 func _tick_item_timeline(delta: float) -> void:
 	# ItemTimeline 永远 ADVANCING（除非 rewind / drag / locked / game over）
@@ -113,6 +148,7 @@ func _process(delta: float) -> void:
 		if _countdown <= 0.0:
 			_countdown = 0.0
 			_trigger_game_over("时间到，游戏结束")
+		_check_fall_off()
 	_item_timeline.push_visuals()
 	_update_timer_label()
 	var locked := _item_timeline.is_locked()
@@ -166,11 +202,6 @@ func _on_door_entered(body: Node3D) -> void:
 		return
 	_door_triggered = true
 	_trigger_win()
-
-func _on_item_hit(body: Node3D) -> void:
-	if body != _actor:
-		return
-	_trigger_game_over("撞到道具了！")
 
 func _on_rewind_started() -> void:
 	_rewind_held = true
