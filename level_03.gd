@@ -1,6 +1,5 @@
 extends Node3D
 
-const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
 const GameSettings := preload("res://game_settings.gd")
 const BugReport := preload("res://bug_report.gd")
 
@@ -25,10 +24,7 @@ const FALL_DEATH_Y := -5.0
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
 @onready var _hud_win: AcceptDialog = $HUD/WinDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
-@onready var _hud_gm_button: Button = $HUD/GMButton
-@onready var _hud_gm_panel: Control = $HUD/GMPanel
-@onready var _hud_gm_close: Button = $HUD/GMPanel/CenterBox/VBox/CloseButton
-@onready var _hud_level_buttons: VBoxContainer = $HUD/GMPanel/CenterBox/VBox/LevelButtons
+@onready var _gm_panel: Control = $HUD/GMPanel
 @onready var _door: Area3D = $Door
 
 @onready var _item1: RigidBody3D = $Item1
@@ -84,12 +80,11 @@ func _ready() -> void:
 	_hud_pause.text = "暂停道具"
 	_hud_dialog.confirmed.connect(_on_restart)
 	_hud_win.confirmed.connect(_on_win_confirmed)
-	_hud_gm_button.pressed.connect(_on_gm_open)
-	_hud_gm_close.pressed.connect(_on_gm_close)
+	_gm_panel.set_levels(LEVELS)
+	_gm_panel.level_chosen.connect(_on_level_pressed)
 	_door.body_entered.connect(_on_door_entered)
 	_hud_timeline.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
-	_populate_levels()
 	_item_timeline.push_visuals()
 
 func _physics_process(delta: float) -> void:
@@ -228,21 +223,6 @@ func _on_rewind_ended() -> void:
 func _on_pause_toggled() -> void:
 	_item_paused = not _item_paused
 	_hud_pause.text = "恢复道具" if _item_paused else "暂停道具"
-
-func _populate_levels() -> void:
-	for level in LEVELS:
-		var btn := Button.new()
-		btn.set_script(_TOUCH_BUTTON_SCRIPT)
-		btn.text = level.name
-		btn.custom_minimum_size = Vector2(0, 60)
-		btn.pressed.connect(_on_level_pressed.bind(level.scene))
-		_hud_level_buttons.add_child(btn)
-
-func _on_gm_open() -> void:
-	_hud_gm_panel.visible = true
-
-func _on_gm_close() -> void:
-	_hud_gm_panel.visible = false
 
 func _on_level_pressed(scene_path: String) -> void:
 	get_tree().paused = false

@@ -1,0 +1,55 @@
+[gd_scene load_steps=3 format=3 uid="uid://cgmpanel3dscenev1"]
+
+[ext_resource type="Script" path="res://gm_panel.gd" id="1_gmpanel"]
+[ext_resource type="Script" path="res://touch_button.gd" id="2_touchbtn"]
+
+[node name="GMPanelContainer" type="Control"]
+script = ExtResource("1_gmpanel")
+mouse_filter = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="GMButton" type="Button" parent="."]
+script = ExtResource("2_touchbtn")
+text = "GM"
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 120.0
+offset_bottom = 100.0
+
+[node name="PanelOverlay" type="Control" parent="."]
+visible = false
+mouse_filter = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Backdrop" type="ColorRect" parent="PanelOverlay"]
+mouse_filter = 0
+color = Color(0, 0, 0, 0.6)
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CenterBox" type="PanelContainer" parent="PanelOverlay"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -200.0
+offset_right = 240.0
+offset_bottom = 200.0
+
+[node name="VBox" type="VBoxContainer" parent="PanelOverlay/CenterBox"]
+
+[node name="TitleLabel" type="Label" parent="PanelOverlay/CenterBox/VBox"]
+text = "GM 面板 - 选择关卡"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="LevelButtons" type="VBoxContainer" parent="PanelOverlay/CenterBox/VBox"]
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="PanelOverlay/CenterBox/VBox"]
+script = ExtResource("2_touchbtn")
+text = "关闭"
+custom_minimum_size = Vector2(0, 60)

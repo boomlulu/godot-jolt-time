@@ -6,7 +6,6 @@ const LEVELS := [
 	{"name": "第三关", "scene": "res://level_03.tscn"},
 ]
 
-const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
 const GameSettings := preload("res://game_settings.gd")
 const BugReport := preload("res://bug_report.gd")
 
@@ -25,10 +24,7 @@ const BugReport := preload("res://bug_report.gd")
 @onready var _hud_tips: Label = $HUD/TipsLabel
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
-@onready var _hud_gm_button: Button = $HUD/GMButton
-@onready var _hud_gm_panel: Control = $HUD/GMPanel
-@onready var _hud_gm_close: Button = $HUD/GMPanel/CenterBox/VBox/CloseButton
-@onready var _hud_level_buttons: VBoxContainer = $HUD/GMPanel/CenterBox/VBox/LevelButtons
+@onready var _gm_panel: Control = $HUD/GMPanel
 @onready var _actor_recorder: Recorder = $Actor/Recorder
 @onready var _box_recorder: Recorder = $PushBox/Recorder
 @onready var _actor_ghost_trail: GhostTrail = $Actor/GhostTrail
@@ -68,13 +64,12 @@ func _ready() -> void:
 	_hud_eye.hold_started.connect(_on_eye_started)
 	_hud_eye.hold_ended.connect(_on_eye_ended)
 	_hud_dialog.confirmed.connect(_on_restart)
-	_hud_gm_button.pressed.connect(_on_gm_open)
-	_hud_gm_close.pressed.connect(_on_gm_close)
+	_gm_panel.set_levels(LEVELS)
+	_gm_panel.level_chosen.connect(_on_level_pressed)
 	_door.body_entered.connect(_on_door_entered)
 	_timeline.drag_state_changed.connect(_on_drag_state_changed)
 	_hud_timeline.bind_timeline(_timeline)
 	_hud_tips.visible = false
-	_populate_levels()
 	_timeline.push_visuals()
 
 func _physics_process(delta: float) -> void:
@@ -180,21 +175,6 @@ func _on_eye_started() -> void:
 
 func _on_eye_ended() -> void:
 	_camera.current = true
-
-func _populate_levels() -> void:
-	for level in LEVELS:
-		var btn := Button.new()
-		btn.set_script(_TOUCH_BUTTON_SCRIPT)
-		btn.text = level.name
-		btn.custom_minimum_size = Vector2(0, 60)
-		btn.pressed.connect(_on_level_pressed.bind(level.scene))
-		_hud_level_buttons.add_child(btn)
-
-func _on_gm_open() -> void:
-	_hud_gm_panel.visible = true
-
-func _on_gm_close() -> void:
-	_hud_gm_panel.visible = false
 
 func _on_level_pressed(scene_path: String) -> void:
 	get_tree().paused = false
