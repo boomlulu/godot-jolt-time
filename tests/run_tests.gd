@@ -13,6 +13,7 @@ const TEST_MODULES := [
 	preload("res://tests/test_7_sine.gd"),
 	preload("res://tests/test_8_asserts.gd"),
 	preload("res://tests/test_9_custom_state.gd"),
+	preload("res://tests/test_10_timescale.gd"),
 ]
 
 var _failures: Array = []

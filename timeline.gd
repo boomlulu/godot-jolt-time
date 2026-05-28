@@ -6,6 +6,9 @@ enum State { IDLE, ADVANCING, REWINDING, DRAGGING, LOCKED, GAME_OVER }
 const REWIND_WINDOW := 3.0
 
 @export var total_duration: float = 10.0
+# 时间速率：1.0=正常，0.3=慢动作，2.0=加速，0=冻结。
+# 影响 advance(delta) 的有效推进步长，不影响 step_backward（rewind 操作独立）
+@export var timescale: float = 1.0
 
 signal state_pushed(current: float, grey_water: float, max_time: float, locked: bool)
 signal drag_state_changed(dragging: bool)
@@ -45,7 +48,10 @@ func is_locked() -> bool:
 func advance(delta: float) -> bool:
 	if current_time >= total_duration:
 		return false
-	var new_time := minf(current_time + delta, total_duration)
+	var effective := delta * timescale
+	if effective <= 0.0:
+		return false  # timescale 0 或负 → 时间冻结
+	var new_time := minf(current_time + effective, total_duration)
 	if new_time == current_time:
 		return false
 	if current_time < max_time:
