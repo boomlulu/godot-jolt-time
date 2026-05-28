@@ -96,7 +96,6 @@ func _ready() -> void:
 	_hud_door_locked.visible = false
 	_key_base_y = _key.position.y
 	_populate_levels()
-	_update_timer_label()
 	_actor_timeline.push_visuals()
 	_box_timeline.push_visuals()
 
@@ -156,7 +155,6 @@ func _tick_box_timeline(delta: float) -> void:
 func _process(delta: float) -> void:
 	_actor_timeline.push_visuals()
 	_box_timeline.push_visuals()
-	_update_timer_label()
 	var locked := _actor_timeline.is_locked() or _box_timeline.is_locked()
 	_hud_tips.visible = locked and not _actor_timeline.dragging and not _box_timeline.dragging
 	if locked:
@@ -214,14 +212,6 @@ func _on_actor_drag_state_changed(dragging: bool) -> void:
 func _on_box_drag_state_changed(dragging: bool) -> void:
 	if not dragging:
 		_box_waiting_for_input = true
-
-func _update_timer_label() -> void:
-	var remaining := maxf(0.0, _actor_timeline.total_duration - _actor_timeline.current_time)
-	var total_ms := int(remaining * 1000.0)
-	var m := total_ms / 60000
-	var s := (total_ms / 1000) % 60
-	var ms := total_ms % 1000
-	_hud_timer.text = "%02d:%02d:%03d" % [m, s, ms]
 
 func _trigger_game_over() -> void:
 	_actor_timeline.mark_game_over()

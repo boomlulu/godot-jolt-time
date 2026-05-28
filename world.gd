@@ -75,7 +75,6 @@ func _ready() -> void:
 	_hud_timeline.bind_timeline(_timeline)
 	_hud_tips.visible = false
 	_populate_levels()
-	_update_timer_label()
 	_timeline.push_visuals()
 
 func _physics_process(delta: float) -> void:
@@ -106,7 +105,6 @@ func _physics_process(delta: float) -> void:
 
 func _process(_delta: float) -> void:
 	_timeline.push_visuals()
-	_update_timer_label()
 	var locked := _timeline.is_locked()
 	_hud_tips.visible = locked and not _timeline.dragging
 	if locked:
@@ -148,14 +146,6 @@ func _has_direct_input() -> bool:
 func _on_drag_state_changed(dragging: bool) -> void:
 	if not dragging:
 		_waiting_for_input = true
-
-func _update_timer_label() -> void:
-	var remaining := maxf(0.0, _timeline.total_duration - _timeline.current_time)
-	var total_ms := int(remaining * 1000.0)
-	var m := total_ms / 60000
-	var s := (total_ms / 1000) % 60
-	var ms := total_ms % 1000
-	_hud_timer.text = "%02d:%02d:%03d" % [m, s, ms]
 
 func _trigger_game_over() -> void:
 	_timeline.mark_game_over()

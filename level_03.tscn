@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://befahc2ft848s"]
+[gd_scene load_steps=34 format=3 uid="uid://befahc2ft848s"]
 
 [ext_resource type="Script" path="res://level_03.gd" id="1_lv03"]
 [ext_resource type="Script" path="res://actor.gd" id="2_actor"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://timeline.gd" id="9_tlcore"]
 [ext_resource type="Script" path="res://ghost_trail.gd" id="10_ghost"]
 [ext_resource type="Script" path="res://level_03_item.gd" id="11_item"]
+[ext_resource type="Script" path="res://timer_label.gd" id="12_timerlbl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lv03"]
 sky_horizon_color = Color(0.65, 0.55, 0.85, 1)
@@ -334,6 +335,7 @@ offset_right = -220.0
 offset_bottom = -220.0
 
 [node name="TimerLabel" type="Label" parent="HUD"]
+script = ExtResource("12_timerlbl")
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -180.0
@@ -345,6 +347,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 64
 theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+timeline_path = NodePath("../../ItemTimeline")
 
 [node name="TipsLabel" type="Label" parent="HUD"]
 visible = false

@@ -1,6 +1,7 @@
 extends Button
 
 var _armed := false
+var _last_emit_frame: int = -1
 
 func _gui_input(event: InputEvent) -> void:
 	if disabled:
@@ -18,11 +19,18 @@ func _gui_input(event: InputEvent) -> void:
 	if is_press:
 		accept_event()
 		if action_mode == BaseButton.ACTION_MODE_BUTTON_PRESS:
-			pressed.emit()
+			_emit_once()
 		else:
 			_armed = true
 	elif is_release:
 		accept_event()
 		if action_mode == BaseButton.ACTION_MODE_BUTTON_RELEASE and _armed:
-			pressed.emit()
+			_emit_once()
 		_armed = false
+
+func _emit_once() -> void:
+	var f := Engine.get_physics_frames()
+	if f == _last_emit_frame:
+		return
+	_last_emit_frame = f
+	pressed.emit()

@@ -22,6 +22,8 @@ static func apply(target: Node3D, frame: StateFrame) -> void:
 static func has_motion(target: Node3D, epsilon: float = 0.05) -> bool:
 	if target is RigidBody3D:
 		var rb := target as RigidBody3D
+		if rb.freeze and rb.freeze_mode == RigidBody3D.FREEZE_MODE_KINEMATIC:
+			return false  # KINEMATIC 推断的 velocity 不算物理活动
 		return rb.linear_velocity.length() > epsilon or rb.angular_velocity.length() > epsilon
 	elif target is CharacterBody3D:
 		return (target as CharacterBody3D).velocity.length() > epsilon
