@@ -51,6 +51,7 @@ func _ready() -> void:
 	await _test_6_tick_timeline_advance()
 	await _test_6_tick_timeline_idle_with_waiting()
 	await _test_6_tick_timeline_rewinding()
+	await _test_7_item_sine_formula()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -490,6 +491,33 @@ func _test_6_door_ignores_non_actor() -> void:
 	fake.queue_free()
 	inst.queue_free()
 	_check(ok, "6.6 door template: non-actor body ignored")
+
+func _test_7_item_sine_formula() -> void:
+	# 锁住 level_03_item.gd 公式契约：target_x = home_x + sin(t*freq*TAU+phase) * amplitude
+	var packed := load("res://level_03.tscn")
+	var inst = packed.instantiate()
+	add_child(inst)
+	await get_tree().physics_frame
+	# 锁住 level._physics_process 不再 tick timeline，否则它会覆盖我们设的 current_time
+	inst._game_over = true
+	var item: RigidBody3D = inst.get_node("Item1")
+	var tl: Timeline = inst.get_node("ItemTimeline")
+	# Item1 params: home_x=-4, home_y=-0.2, home_z=0, amp=4, freq=0.12, phase=0
+	var test_times: Array = [0.0, 1.0, 2.0, 4.0]
+	for t in test_times:
+		tl.current_time = t
+		# 等两帧让 item._physics_process 读新 current_time（第一帧可能还在用上一帧的）
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		var expected_x: float = item.home_x + sin(t * item.frequency_hz * TAU + item.phase) * item.amplitude
+		var actual_x: float = item.global_position.x
+		var delta: float = absf(actual_x - expected_x)
+		if delta > 0.01:
+			inst.queue_free()
+			_check(false, "7.1 item sine formula at t=%.1f: expected x=%.3f got %.3f (delta=%.3f)" % [t, expected_x, actual_x, delta])
+			return
+	inst.queue_free()
+	_check(true, "7.1 item sine formula: 4 sample points all within 0.01 of formula")
 
 func _check(ok: bool, name: String) -> void:
 	if ok:
