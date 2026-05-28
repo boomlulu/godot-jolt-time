@@ -53,9 +53,6 @@ var _won: bool = false
 var _items: Array = []
 var _riding_platform: RigidBody3D = null
 var _riding_last_x: float = 0.0
-var _pause_click_count: int = 0
-var _bug_click_count: int = 0
-var _rewind_press_count: int = 0
 
 func _ready() -> void:
 	_actor.joystick = _hud_joystick
@@ -156,9 +153,9 @@ func _is_input_active() -> bool:
 		return true
 	if not _item_paused:
 		return true
-	for item in _items:
-		if Rewindable.has_motion(item):
-			return true
+	# Items 是 KINEMATIC freeze，没有真正的物理激活。它们的运动完全由
+	# sine 规律驱动，规律开关已由 _item_paused 表达。Godot 会从 KINEMATIC
+	# 位置 delta 推断 linear_velocity，但那不是"物理激活"，不应作为活动证据
 	return false
 
 func _tick_item_timeline(delta: float) -> void:
@@ -235,14 +232,12 @@ func _on_door_entered(body: Node3D) -> void:
 	_trigger_win()
 
 func _on_rewind_started() -> void:
-	_rewind_press_count += 1
 	_rewind_held = true
 
 func _on_rewind_ended() -> void:
 	_rewind_held = false
 
 func _on_pause_toggled() -> void:
-	_pause_click_count += 1
 	_item_paused = not _item_paused
 	_hud_pause.text = "恢复道具" if _item_paused else "暂停道具"
 
@@ -282,12 +277,8 @@ func _item_line(label: String, item: RigidBody3D) -> String:
 	]
 
 func _on_bug_report() -> void:
-	_bug_click_count += 1
 	var state := _item_timeline.get_game_state(_is_input_active())
-	var body := "clicks: bug=%d pause=%d rewind=%d  btn_text=%s\n" % [
-		_bug_click_count, _pause_click_count, _rewind_press_count, _hud_pause.text,
-	]
-	body += "item_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
+	var body := "item_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
 		_state_name(state), _item_timeline.current_time, _item_timeline.total_duration,
 		_item_timeline.max_time, _item_timeline.grey_water, str(_item_timeline.is_locked()),
 		str(_item_timeline.dragging), str(_item_timeline.rewind_held),
