@@ -24,6 +24,13 @@ func queue_jump() -> void:
 func has_pending_jump() -> bool:
 	return _jump_queued
 
+func has_activity() -> bool:
+	if velocity.length() > 0.05:
+		return true
+	if not is_on_floor():
+		return true
+	return false
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not _should_accept_input():
 		return

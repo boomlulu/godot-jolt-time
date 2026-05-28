@@ -146,15 +146,13 @@ func _is_input_active() -> bool:
 		return true
 	if _actor.has_method("has_pending_jump") and _actor.has_pending_jump():
 		return true
-	if not _actor.is_on_floor():
-		return true
-	if Rewindable.has_motion(_actor):
+	if _actor.has_activity():
 		return true
 	if not _item_paused:
 		return true
-	# Items 是 KINEMATIC freeze，没有真正的物理激活。它们的运动完全由
-	# sine 规律驱动，规律开关已由 _item_paused 表达。Godot 会从 KINEMATIC
-	# 位置 delta 推断 linear_velocity，但那不是"物理激活"，不应作为活动证据
+	for item in _items:
+		if item.has_activity():
+			return true
 	return false
 
 func _tick_item_timeline(delta: float) -> void:

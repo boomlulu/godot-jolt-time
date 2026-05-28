@@ -122,13 +122,14 @@ func _is_player_inputting() -> bool:
 		return true
 	if _waiting_for_input:
 		return false
-	if not _actor.is_on_floor():
+	if _actor.has_activity():
 		return true
-	if Rewindable.has_motion(_actor):
-		return true
-	if Rewindable.has_motion(_pushbox):
+	if _pushbox_has_activity():
 		return true
 	return false
+
+func _pushbox_has_activity() -> bool:
+	return _pushbox.linear_velocity.length() > 0.05 or _pushbox.angular_velocity.length() > 0.05
 
 func _has_direct_input() -> bool:
 	if _hud_joystick.value.length() > 0.0:
