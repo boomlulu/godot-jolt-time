@@ -52,6 +52,7 @@ func _ready() -> void:
 	await _test_6_tick_timeline_idle_with_waiting()
 	await _test_6_tick_timeline_rewinding()
 	await _test_7_item_sine_formula()
+	_test_8_assert_helpers_pass_paths()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -519,6 +520,20 @@ func _test_7_item_sine_formula() -> void:
 	inst.queue_free()
 	_check(true, "7.1 item sine formula: 4 sample points all within 0.01 of formula")
 
+func _test_8_assert_helpers_pass_paths() -> void:
+	# self-test: assert_equal / assert_near 在 happy path 都通过
+	# 用一个临时局部计数代替 _passes（避免污染主计数）
+	var before_pass: int = _passes
+	var before_fail: int = _failures.size()
+	_assert_equal(1 + 1, 2, "8.1a assert_equal int")
+	_assert_equal("foo", "foo", "8.1b assert_equal str")
+	_assert_near(0.1 + 0.2, 0.3, 0.0001, "8.1c assert_near float")
+	# 3 个都应该 pass
+	var pass_added: int = _passes - before_pass
+	var fail_added: int = _failures.size() - before_fail
+	_check(pass_added == 3 and fail_added == 0,
+		"8.1 assert helpers happy paths: %d passes / %d fails added (expected 3/0)" % [pass_added, fail_added])
+
 func _check(ok: bool, name: String) -> void:
 	if ok:
 		_passes += 1
@@ -526,6 +541,23 @@ func _check(ok: bool, name: String) -> void:
 	else:
 		_failures.append(name)
 		printerr("[FAIL] " + name)
+
+# 等价断言：自动把 expected/actual 拼进 FAIL 消息
+func _assert_equal(actual, expected, name: String) -> void:
+	var ok: bool = actual == expected
+	if ok:
+		_check(true, name)
+	else:
+		_check(false, "%s: expected %s got %s" % [name, str(expected), str(actual)])
+
+# 容差断言（float）：|actual - expected| <= tolerance
+func _assert_near(actual: float, expected: float, tolerance: float, name: String) -> void:
+	var delta: float = absf(actual - expected)
+	var ok: bool = delta <= tolerance
+	if ok:
+		_check(true, name)
+	else:
+		_check(false, "%s: |%.4f - %.4f| = %.4f > %.4f" % [name, actual, expected, delta, tolerance])
 
 func _print_summary_and_quit() -> void:
 	print("---")
