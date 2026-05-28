@@ -18,6 +18,7 @@ const FALL_DEATH_Y := -5.0
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_exit: Button = $HUD/ExitButton
 @onready var _hud_rewind: Button = $HUD/RewindButton
+@onready var _hud_pause: Button = $HUD/PauseButton
 @onready var _hud_timer: Label = $HUD/TimerLabel
 @onready var _hud_tips: Label = $HUD/TipsLabel
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
@@ -43,6 +44,7 @@ const FALL_DEATH_Y := -5.0
 @onready var _item3_trail: MultiMeshInstance3D = $ItemTrail3
 
 var _rewind_held: bool = false
+var _item_paused: bool = false
 var _door_triggered: bool = false
 var _countdown: float = TIMER_START
 var _game_over: bool = false
@@ -77,6 +79,8 @@ func _ready() -> void:
 	_hud_exit.pressed.connect(_on_exit_pressed)
 	_hud_rewind.hold_started.connect(_on_rewind_started)
 	_hud_rewind.hold_ended.connect(_on_rewind_ended)
+	_hud_pause.pressed.connect(_on_pause_toggled)
+	_hud_pause.text = "暂停道具"
 	_hud_dialog.confirmed.connect(_on_restart)
 	_hud_win.confirmed.connect(_on_win_confirmed)
 	_hud_gm_button.pressed.connect(_on_gm_open)
@@ -140,7 +144,10 @@ func _tick_item_timeline(delta: float) -> void:
 			_item_timeline.disable_recording()
 			_item_timeline.step_backward(delta)
 		Timeline.State.ADVANCING:
-			_item_timeline.advance(delta)
+			if not _item_paused:
+				_item_timeline.advance(delta)
+			else:
+				_item_timeline.disable_recording()
 		Timeline.State.IDLE:
 			_item_timeline.disable_recording()
 
@@ -210,6 +217,10 @@ func _on_rewind_started() -> void:
 
 func _on_rewind_ended() -> void:
 	_rewind_held = false
+
+func _on_pause_toggled() -> void:
+	_item_paused = not _item_paused
+	_hud_pause.text = "恢复道具" if _item_paused else "暂停道具"
 
 func _populate_levels() -> void:
 	for level in LEVELS:
