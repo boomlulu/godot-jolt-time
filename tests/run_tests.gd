@@ -48,6 +48,9 @@ func _ready() -> void:
 	await _test_6_door_triggered_template()
 	await _test_6_door_blocked_without_key()
 	await _test_6_door_ignores_non_actor()
+	await _test_6_tick_timeline_advance()
+	await _test_6_tick_timeline_idle_with_waiting()
+	await _test_6_tick_timeline_rewinding()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -597,6 +600,78 @@ func _test_5_l02_door_locked_without_key() -> void:
 	var ok: bool = (not triggered_before) and (not triggered_after)
 	inst.queue_free()
 	_check(ok, "5.5 L02 door no-key: _door_triggered stays false")
+
+func _test_6_tick_timeline_advance() -> void:
+	# 构造 Timeline，input_active=true → 调用 _tick_timeline → current_time 推进
+	var tl := Node.new()
+	tl.set_script(load("res://timeline.gd"))
+	tl.total_duration = 20.0
+	add_child(tl)
+	var packed := load("res://world.tscn")
+	var level = packed.instantiate()
+	add_child(level)
+	await get_tree().physics_frame
+	var freeze_calls := [0]
+	var advance_calls := [0]
+	level._tick_timeline(
+		tl, 0.1, true,
+		func(_f): freeze_calls[0] += 1,
+		func(): advance_calls[0] += 1,
+		func(): return false,
+		func(): pass,
+	)
+	var ok: bool = tl.current_time > 0.0 and freeze_calls[0] >= 1 and advance_calls[0] == 1
+	var ct: float = tl.current_time
+	level.queue_free()
+	tl.queue_free()
+	_check(ok, "6.7 _tick_timeline ADVANCING: current_time=%.3f freeze_calls=%d advance_calls=%d" % [ct, freeze_calls[0], advance_calls[0]])
+
+func _test_6_tick_timeline_idle_with_waiting() -> void:
+	# waiting=true + input=false → IDLE → on_freeze(true)
+	var tl := Node.new()
+	tl.set_script(load("res://timeline.gd"))
+	add_child(tl)
+	var packed := load("res://world.tscn")
+	var level = packed.instantiate()
+	add_child(level)
+	await get_tree().physics_frame
+	var last_freeze := [false]
+	level._tick_timeline(
+		tl, 0.1, false,
+		func(f): last_freeze[0] = f,
+		func(): pass,
+		func(): return true,
+		func(): pass,
+	)
+	var ok: bool = last_freeze[0] == true
+	level.queue_free()
+	tl.queue_free()
+	_check(ok, "6.8 _tick_timeline IDLE+waiting: on_freeze(true)")
+
+func _test_6_tick_timeline_rewinding() -> void:
+	var tl := Node.new()
+	tl.set_script(load("res://timeline.gd"))
+	add_child(tl)
+	tl.current_time = 5.0
+	tl.max_time = 5.0
+	tl.rewind_held = true
+	var packed := load("res://world.tscn")
+	var level = packed.instantiate()
+	add_child(level)
+	await get_tree().physics_frame
+	var ct_before: float = tl.current_time
+	level._tick_timeline(
+		tl, 0.1, false,
+		func(_f): pass,
+		func(): pass,
+		func(): return false,
+		func(): pass,
+	)
+	var ct_after: float = tl.current_time
+	var ok: bool = ct_after < ct_before
+	level.queue_free()
+	tl.queue_free()
+	_check(ok, "6.9 _tick_timeline REWINDING: current_time %.3f -> %.3f" % [ct_before, ct_after])
 
 func _test_5_world_waiting_freezes_actor() -> void:
 	var packed := load("res://world.tscn")

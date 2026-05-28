@@ -56,28 +56,15 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_camera.tick_yaw(delta)
 	_timeline.rewind_held = _rewind_held
-	var input_active := _is_player_inputting()
-	var state := _timeline.get_game_state(input_active)
-	match state:
-		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_apply_freeze(true)
-			_timeline.disable_recording()
-		Timeline.State.REWINDING:
-			_apply_freeze(true)
-			_timeline.disable_recording()
-			_timeline.step_backward(delta)
-		Timeline.State.ADVANCING:
-			_waiting_for_input = false
-			_apply_freeze(false)
-			_timeline.advance(delta)
+	_tick_timeline(
+		_timeline, delta, _is_player_inputting(),
+		_apply_freeze,
+		func():
 			if _timeline.current_time >= _timeline.total_duration:
-				_trigger_game_over()
-		Timeline.State.IDLE:
-			if _waiting_for_input:
-				_apply_freeze(true)
-			else:
-				_apply_freeze(false)
-			_timeline.disable_recording()
+				_trigger_game_over(),
+		func(): return _waiting_for_input,
+		func(): _waiting_for_input = false,
+	)
 
 func _process(_delta: float) -> void:
 	_timeline.push_visuals()

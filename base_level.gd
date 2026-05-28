@@ -77,3 +77,34 @@ func _on_door_passed() -> void:
 func _on_restart() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+# 处理 timeline state 流转的通用 helper。三关共用。
+#   timeline:        要 tick 的 Timeline
+#   delta:           物理 delta
+#   input_active:    本帧活动检测结果
+#   on_freeze:       Callable(freeze: bool)，level 决定怎么冻结自己的目标
+#   on_advance_end:  Callable() —— ADVANCING 一帧推进后调一次（一般用来检 timeout）。
+#                    传 func(): pass 表示什么都不做
+#   waiting_ref:     Callable() -> bool 返回 _waiting_for_input；如果不需要 waiting 门控，
+#                    传 func(): return false（IDLE 时 freeze=false）
+#   clear_waiting:   Callable()，ADVANCING 进入时清掉 waiting flag。不需要传 func(): pass
+func _tick_timeline(timeline: Timeline, delta: float, input_active: bool,
+					on_freeze: Callable, on_advance_end: Callable,
+					waiting_ref: Callable, clear_waiting: Callable) -> void:
+	var state := timeline.get_game_state(input_active)
+	match state:
+		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
+			on_freeze.call(true)
+			timeline.disable_recording()
+		Timeline.State.REWINDING:
+			on_freeze.call(true)
+			timeline.disable_recording()
+			timeline.step_backward(delta)
+		Timeline.State.ADVANCING:
+			clear_waiting.call()
+			on_freeze.call(false)
+			timeline.advance(delta)
+			on_advance_end.call()
+		Timeline.State.IDLE:
+			on_freeze.call(waiting_ref.call())
+			timeline.disable_recording()

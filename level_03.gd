@@ -73,7 +73,13 @@ func _physics_process(delta: float) -> void:
 		return
 	_camera.tick_yaw(delta)
 	_item_timeline.rewind_held = _rewind_held
-	_tick_item_timeline(delta)
+	_tick_timeline(
+		_item_timeline, delta, _is_input_active(),
+		func(_f): pass,
+		func(): pass,
+		func(): return false,
+		func(): pass,
+	)
 	_carry_actor_on_platform()
 
 func _carry_actor_on_platform() -> void:
@@ -130,19 +136,6 @@ func _is_input_active() -> bool:
 		if item.has_activity():
 			return true
 	return false
-
-func _tick_item_timeline(delta: float) -> void:
-	var state := _item_timeline.get_game_state(_is_input_active())
-	match state:
-		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_item_timeline.disable_recording()
-		Timeline.State.REWINDING:
-			_item_timeline.disable_recording()
-			_item_timeline.step_backward(delta)
-		Timeline.State.ADVANCING:
-			_item_timeline.advance(delta)
-		Timeline.State.IDLE:
-			_item_timeline.disable_recording()
 
 func _process(_delta: float) -> void:
 	if not _game_over and not _won:

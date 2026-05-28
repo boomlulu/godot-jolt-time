@@ -79,54 +79,22 @@ func _physics_process(delta: float) -> void:
 	_camera.tick_yaw(delta)
 	_actor_timeline.rewind_held = _actor_rewind_held
 	_box_timeline.rewind_held = _box_rewind_held
-	_tick_actor_timeline(delta)
-	_tick_box_timeline(delta)
-
-func _tick_actor_timeline(delta: float) -> void:
-	var input_active := _is_actor_inputting()
-	var state := _actor_timeline.get_game_state(input_active)
-	match state:
-		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_apply_actor_freeze(true)
-			_actor_timeline.disable_recording()
-		Timeline.State.REWINDING:
-			_apply_actor_freeze(true)
-			_actor_timeline.disable_recording()
-			_actor_timeline.step_backward(delta)
-		Timeline.State.ADVANCING:
-			_actor_waiting_for_input = false
-			_apply_actor_freeze(false)
-			_actor_timeline.advance(delta)
+	_tick_timeline(
+		_actor_timeline, delta, _is_actor_inputting(),
+		_apply_actor_freeze,
+		func():
 			if _actor_timeline.current_time >= _actor_timeline.total_duration:
-				_trigger_game_over()
-		Timeline.State.IDLE:
-			if _actor_waiting_for_input:
-				_apply_actor_freeze(true)
-			else:
-				_apply_actor_freeze(false)
-			_actor_timeline.disable_recording()
-
-func _tick_box_timeline(delta: float) -> void:
-	var input_active := _is_box_inputting()
-	var state := _box_timeline.get_game_state(input_active)
-	match state:
-		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_apply_box_freeze(true)
-			_box_timeline.disable_recording()
-		Timeline.State.REWINDING:
-			_apply_box_freeze(true)
-			_box_timeline.disable_recording()
-			_box_timeline.step_backward(delta)
-		Timeline.State.ADVANCING:
-			_box_waiting_for_input = false
-			_apply_box_freeze(false)
-			_box_timeline.advance(delta)
-		Timeline.State.IDLE:
-			if _box_waiting_for_input:
-				_apply_box_freeze(true)
-			else:
-				_apply_box_freeze(false)
-			_box_timeline.disable_recording()
+				_trigger_game_over(),
+		func(): return _actor_waiting_for_input,
+		func(): _actor_waiting_for_input = false,
+	)
+	_tick_timeline(
+		_box_timeline, delta, _is_box_inputting(),
+		_apply_box_freeze,
+		func(): pass,
+		func(): return _box_waiting_for_input,
+		func(): _box_waiting_for_input = false,
+	)
 
 func _process(delta: float) -> void:
 	_actor_timeline.push_visuals()
