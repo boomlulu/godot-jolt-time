@@ -45,7 +45,6 @@ const TIMER_START := 15.0
 
 var _rewind_held: bool = false
 var _door_triggered: bool = false
-var _item_waiting_for_input: bool = true
 var _countdown: float = TIMER_START
 var _game_over: bool = false
 var _won: bool = false
@@ -66,6 +65,7 @@ func _ready() -> void:
 		entry.gt.target = entry.rb
 		entry.gt.trail_renderer = entry.tr
 		entry.gt.trail_color = trail_color
+		entry.rb.timeline = _item_timeline
 		_item_timeline.subscribe(entry.rec)
 		_item_timeline.subscribe(entry.gt)
 
@@ -80,7 +80,6 @@ func _ready() -> void:
 	_item1_hit.body_entered.connect(_on_item_hit)
 	_item2_hit.body_entered.connect(_on_item_hit)
 	_item3_hit.body_entered.connect(_on_item_hit)
-	_item_timeline.drag_state_changed.connect(_on_item_drag_state_changed)
 	_hud_timeline.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
 	_populate_levels()
@@ -95,25 +94,17 @@ func _physics_process(delta: float) -> void:
 	_tick_item_timeline(delta)
 
 func _tick_item_timeline(delta: float) -> void:
-	var input_active := _is_item_inputting()
-	var state := _item_timeline.get_game_state(input_active)
+	# ItemTimeline 永远 ADVANCING（除非 rewind / drag / locked / game over）
+	var state := _item_timeline.get_game_state(true)
 	match state:
 		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_apply_item_freeze(true)
 			_item_timeline.disable_recording()
 		Timeline.State.REWINDING:
-			_apply_item_freeze(true)
 			_item_timeline.disable_recording()
 			_item_timeline.step_backward(delta)
 		Timeline.State.ADVANCING:
-			_item_waiting_for_input = false
-			_apply_item_freeze(false)
 			_item_timeline.advance(delta)
 		Timeline.State.IDLE:
-			if _item_waiting_for_input:
-				_apply_item_freeze(true)
-			else:
-				_apply_item_freeze(false)
 			_item_timeline.disable_recording()
 
 func _process(delta: float) -> void:
@@ -130,25 +121,6 @@ func _process(delta: float) -> void:
 		_hud_timer.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
 	else:
 		_hud_timer.add_theme_color_override("font_color", Color(0.2, 1, 0.4, 1))
-
-func _apply_item_freeze(freeze: bool) -> void:
-	_item1.freeze = freeze
-	_item2.freeze = freeze
-	_item3.freeze = freeze
-
-func _is_item_inputting() -> bool:
-	if _item_waiting_for_input:
-		# 第一次需要等 item 有运动才开始记录
-		if Rewindable.has_motion(_item1) or Rewindable.has_motion(_item2) or Rewindable.has_motion(_item3):
-			return true
-		return false
-	if Rewindable.has_motion(_item1) or Rewindable.has_motion(_item2) or Rewindable.has_motion(_item3):
-		return true
-	return false
-
-func _on_item_drag_state_changed(dragging: bool) -> void:
-	if not dragging:
-		_item_waiting_for_input = true
 
 func _update_timer_label() -> void:
 	var remaining := maxf(0.0, _countdown)

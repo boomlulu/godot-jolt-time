@@ -233,8 +233,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -5)
 mass = 1.5
 linear_damp = 2.0
 angular_damp = 4.0
+freeze = true
+freeze_mode = 1
 script = ExtResource("11_item")
+home_x = 0.0
 home_z = -5.0
+amplitude = 1.4
+frequency_hz = 0.45
+phase = 0.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item1"]
 mesh = SubResource("BoxMesh_item")
@@ -255,12 +261,18 @@ script = ExtResource("6_rewind")
 script = ExtResource("10_ghost")
 
 [node name="Item2" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 1, 0)
 mass = 1.5
 linear_damp = 2.0
 angular_damp = 4.0
+freeze = true
+freeze_mode = 1
 script = ExtResource("11_item")
+home_x = 0.0
 home_z = 0.0
+amplitude = 1.4
+frequency_hz = 0.6
+phase = 1.5707963
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item2"]
 mesh = SubResource("BoxMesh_item")
@@ -285,8 +297,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
 mass = 1.5
 linear_damp = 2.0
 angular_damp = 4.0
+freeze = true
+freeze_mode = 1
 script = ExtResource("11_item")
+home_x = 0.0
 home_z = 5.0
+amplitude = 1.4
+frequency_hz = 0.35
+phase = 3.1415927
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Item3"]
 mesh = SubResource("BoxMesh_item")
