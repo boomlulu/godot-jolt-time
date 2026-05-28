@@ -9,7 +9,6 @@ const LEVELS := [
 	{"name": "第三关", "scene": "res://level_03.tscn"},
 ]
 
-const TIMER_START := 20.0
 const FALL_DEATH_Y := -5.0
 
 @onready var _item_timeline: Timeline = $ItemTimeline
@@ -46,7 +45,6 @@ const FALL_DEATH_Y := -5.0
 var _rewind_held: bool = false
 var _item_paused: bool = false
 var _door_triggered: bool = false
-var _countdown: float = TIMER_START
 var _game_over: bool = false
 var _won: bool = false
 
@@ -134,9 +132,34 @@ func _check_fall_off() -> void:
 	if _actor.global_position.y < FALL_DEATH_Y:
 		_trigger_game_over("掉下深坑，游戏结束")
 
+func _is_input_active() -> bool:
+	# actor 输入
+	if _hud_joystick.value.length() > 0.0:
+		return true
+	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_D):
+		return true
+	if Input.is_key_pressed(KEY_SPACE):
+		return true
+	if _camera.has_method("is_dragging") and _camera.is_dragging():
+		return true
+	if _actor.has_method("has_pending_jump") and _actor.has_pending_jump():
+		return true
+	# actor 物理激活
+	if not _actor.is_on_floor():
+		return true
+	if Rewindable.has_motion(_actor):
+		return true
+	# 道具按规律移动（pause 未开启 → 道具按既定规律移动）
+	if not _item_paused:
+		return true
+	# 道具物理激活（兼容未来 RigidBody item 仍有残余速度的情况）
+	for item in _items:
+		if Rewindable.has_motion(item):
+			return true
+	return false
+
 func _tick_item_timeline(delta: float) -> void:
-	# ItemTimeline 永远 ADVANCING（除非 rewind / drag / locked / game over）
-	var state := _item_timeline.get_game_state(true)
+	var state := _item_timeline.get_game_state(_is_input_active())
 	match state:
 		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
 			_item_timeline.disable_recording()
@@ -144,31 +167,27 @@ func _tick_item_timeline(delta: float) -> void:
 			_item_timeline.disable_recording()
 			_item_timeline.step_backward(delta)
 		Timeline.State.ADVANCING:
-			if not _item_paused:
-				_item_timeline.advance(delta)
-			else:
-				_item_timeline.disable_recording()
+			_item_timeline.advance(delta)
 		Timeline.State.IDLE:
 			_item_timeline.disable_recording()
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not _game_over and not _won:
-		_countdown -= delta
-		if _countdown <= 0.0:
-			_countdown = 0.0
-			_trigger_game_over("时间到，游戏结束")
 		_check_fall_off()
+		if _item_timeline.current_time >= _item_timeline.total_duration:
+			_trigger_game_over("时间到，游戏结束")
 	_item_timeline.push_visuals()
 	_update_timer_label()
 	var locked := _item_timeline.is_locked()
 	_hud_tips.visible = locked and not _item_timeline.dragging
-	if locked or _countdown < 5.0:
+	var remaining := _item_timeline.total_duration - _item_timeline.current_time
+	if locked or remaining < 5.0:
 		_hud_timer.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
 	else:
 		_hud_timer.add_theme_color_override("font_color", Color(0.2, 1, 0.4, 1))
 
 func _update_timer_label() -> void:
-	var remaining := maxf(0.0, _countdown)
+	var remaining := maxf(0.0, _item_timeline.total_duration - _item_timeline.current_time)
 	var total_ms := int(remaining * 1000.0)
 	var m := total_ms / 60000
 	var s := (total_ms / 1000) % 60

@@ -110,6 +110,7 @@ script = ExtResource("1_lv03")
 
 [node name="ItemTimeline" type="Node" parent="."]
 script = ExtResource("9_tlcore")
+total_duration = 20.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_lv03")
