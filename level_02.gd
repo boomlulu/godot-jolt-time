@@ -171,7 +171,7 @@ func _is_box_inputting() -> bool:
 	return false
 
 func _pushbox_has_activity() -> bool:
-	return _pushbox.linear_velocity.length() > 0.05 or _pushbox.angular_velocity.length() > 0.05
+	return _pushbox.linear_velocity.length() > Rewindable.MOTION_EPSILON or _pushbox.angular_velocity.length() > Rewindable.MOTION_EPSILON
 
 func _has_direct_input() -> bool:
 	if _hud_joystick.value.length() > 0.0:

@@ -1,6 +1,10 @@
 class_name Rewindable
 extends RefCounted
 
+# 判定"物理活动"的统一阈值（linear/angular velocity 的最小值）
+# 所有 has_motion / has_activity 实现都用这个常量
+const MOTION_EPSILON := 0.05
+
 static func capture(target: Node3D, time: float) -> StateFrame:
 	var lv := Vector3.ZERO
 	var av := Vector3.ZERO
@@ -19,7 +23,7 @@ static func apply(target: Node3D, frame: StateFrame) -> void:
 	elif target is CharacterBody3D:
 		(target as CharacterBody3D).velocity = frame.linear_v
 
-static func has_motion(target: Node3D, epsilon: float = 0.05) -> bool:
+static func has_motion(target: Node3D, epsilon: float = MOTION_EPSILON) -> bool:
 	if target is RigidBody3D:
 		var rb := target as RigidBody3D
 		if rb.freeze and rb.freeze_mode == RigidBody3D.FREEZE_MODE_KINEMATIC:

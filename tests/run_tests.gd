@@ -43,6 +43,7 @@ func _ready() -> void:
 	await _test_5_l02_door_locked_without_key()
 	await _test_5_world_waiting_freezes_actor()
 	await _test_6_levels_registry_single_source()
+	_test_6_motion_epsilon_constant()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -411,6 +412,12 @@ func _test_6_levels_registry_single_source() -> void:
 			_check(false, "6.1 %s _get_levels != LevelsRegistry.ALL" % p)
 			return
 	_check(true, "6.1 LevelsRegistry single source: 3 entries, all levels match")
+
+func _test_6_motion_epsilon_constant() -> void:
+	# 常量定义在 Rewindable，值为 0.05
+	var v: float = Rewindable.MOTION_EPSILON
+	var ok: bool = absf(v - 0.05) < 0.0001
+	_check(ok, "6.2 Rewindable.MOTION_EPSILON = 0.05 (got %.4f)" % v)
 
 func _check(ok: bool, name: String) -> void:
 	if ok:

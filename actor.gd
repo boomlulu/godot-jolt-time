@@ -25,7 +25,7 @@ func has_pending_jump() -> bool:
 	return _jump_queued
 
 func has_activity() -> bool:
-	if velocity.length() > 0.05:
+	if velocity.length() > Rewindable.MOTION_EPSILON:
 		return true
 	if not is_on_floor():
 		return true
