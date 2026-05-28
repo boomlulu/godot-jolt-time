@@ -44,6 +44,7 @@ func _ready() -> void:
 	await _test_5_world_waiting_freezes_actor()
 	await _test_6_levels_registry_single_source()
 	_test_6_motion_epsilon_constant()
+	await _test_6_pushbox_has_activity()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -418,6 +419,27 @@ func _test_6_motion_epsilon_constant() -> void:
 	var v: float = Rewindable.MOTION_EPSILON
 	var ok: bool = absf(v - 0.05) < 0.0001
 	_check(ok, "6.2 Rewindable.MOTION_EPSILON = 0.05 (got %.4f)" % v)
+
+func _test_6_pushbox_has_activity() -> void:
+	# world 和 level_02 的 PushBox 应该挂 physics_box.gd 并有 has_activity 方法
+	var paths := ["res://world.tscn", "res://level_02.tscn"]
+	for p in paths:
+		var packed = load(p)
+		var inst = packed.instantiate()
+		add_child(inst)
+		await get_tree().physics_frame
+		var pb: Node = inst.get_node("PushBox")
+		var has_method_ok: bool = pb.has_method("has_activity")
+		# 初始静止 → has_activity false
+		var inactive: bool = not pb.has_activity()
+		# 强行设速度 → has_activity true
+		(pb as RigidBody3D).linear_velocity = Vector3(2, 0, 0)
+		var active: bool = pb.has_activity()
+		inst.queue_free()
+		if not (has_method_ok and inactive and active):
+			_check(false, "6.3 %s PushBox.has_activity (method=%s inactive=%s active=%s)" % [p, str(has_method_ok), str(inactive), str(active)])
+			return
+	_check(true, "6.3 PushBox has_activity() works for world + level_02")
 
 func _check(ok: bool, name: String) -> void:
 	if ok:

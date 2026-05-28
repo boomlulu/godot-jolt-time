@@ -104,12 +104,9 @@ func _is_player_inputting() -> bool:
 		return false
 	if _actor.has_activity():
 		return true
-	if _pushbox_has_activity():
+	if _pushbox.has_activity():
 		return true
 	return false
-
-func _pushbox_has_activity() -> bool:
-	return _pushbox.linear_velocity.length() > Rewindable.MOTION_EPSILON or _pushbox.angular_velocity.length() > Rewindable.MOTION_EPSILON
 
 func _has_direct_input() -> bool:
 	if _hud_joystick.value.length() > 0.0:

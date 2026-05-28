@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://dbri5bn22ixnx"]
+[gd_scene load_steps=44 format=3 uid="uid://dbri5bn22ixnx"]
 
 [ext_resource type="Script" path="res://level_02.gd" id="1_lv02"]
 [ext_resource type="Script" path="res://actor.gd" id="2_actor"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://observer_camera.gd" id="11_observer"]
 [ext_resource type="Script" path="res://timer_label.gd" id="12_timerlbl"]
 [ext_resource type="PackedScene" path="res://gm_panel.tscn" id="13_gmpanel"]
+[ext_resource type="Script" path="res://physics_box.gd" id="14_physbox"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lv02"]
 sky_horizon_color = Color(0.6, 0.7, 0.9, 1)
@@ -325,6 +326,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mass = 1.0
 linear_damp = 2.0
 angular_damp = 4.0
+script = ExtResource("14_physbox")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PushBox"]
 mesh = SubResource("BoxMesh_pushbox")
