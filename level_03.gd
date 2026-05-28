@@ -132,8 +132,8 @@ func _check_fall_off() -> void:
 	if _actor.global_position.y < FALL_DEATH_Y:
 		_trigger_game_over("掉下深坑，游戏结束")
 
+
 func _is_input_active() -> bool:
-	# actor 输入
 	if _hud_joystick.value.length() > 0.0:
 		return true
 	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_D):
@@ -144,15 +144,12 @@ func _is_input_active() -> bool:
 		return true
 	if _actor.has_method("has_pending_jump") and _actor.has_pending_jump():
 		return true
-	# actor 物理激活
 	if not _actor.is_on_floor():
 		return true
 	if Rewindable.has_motion(_actor):
 		return true
-	# 道具按规律移动（pause 未开启 → 道具按既定规律移动）
 	if not _item_paused:
 		return true
-	# 道具物理激活（兼容未来 RigidBody item 仍有残余速度的情况）
 	for item in _items:
 		if Rewindable.has_motion(item):
 			return true
