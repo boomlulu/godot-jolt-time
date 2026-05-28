@@ -1,11 +1,5 @@
 extends BaseLevel
 
-const LEVELS := [
-	{"name": "新手引导", "scene": "res://world.tscn"},
-	{"name": "第二关·钥匙", "scene": "res://level_02.tscn"},
-	{"name": "第三关", "scene": "res://level_03.tscn"},
-]
-
 @onready var _timeline: Timeline = $Timeline
 @onready var _actor: CharacterBody3D = $Actor
 @onready var _pushbox: RigidBody3D = $PushBox
@@ -62,9 +56,6 @@ func _ready() -> void:
 	_hud_timeline.bind_timeline(_timeline)
 	_hud_tips.visible = false
 	_timeline.push_visuals()
-
-func _get_levels() -> Array:
-	return LEVELS
 
 func _physics_process(delta: float) -> void:
 	_camera.tick_yaw(delta)

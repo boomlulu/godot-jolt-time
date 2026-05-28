@@ -42,6 +42,7 @@ func _ready() -> void:
 	await _test_5_l02_key_pickup_sets_flag()
 	await _test_5_l02_door_locked_without_key()
 	await _test_5_world_waiting_freezes_actor()
+	await _test_6_levels_registry_single_source()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -387,6 +388,29 @@ func _test_2_base_handlers_present() -> void:
 	)
 	inst.queue_free()
 	_check(ok, "2.5 base handlers present on level instance")
+
+const LevelsRegistry := preload("res://levels_registry.gd")
+
+func _test_6_levels_registry_single_source() -> void:
+	# 注册表有 3 项
+	var registry_size: int = LevelsRegistry.ALL.size()
+	if registry_size != 3:
+		_check(false, "6.1 registry size expected 3 got %d" % registry_size)
+		return
+	# 三关 _get_levels() 返同一引用 / 同内容
+	var paths := ["res://world.tscn", "res://level_02.tscn", "res://level_03.tscn"]
+	for p in paths:
+		var packed = load(p)
+		var inst = packed.instantiate()
+		add_child(inst)
+		await get_tree().physics_frame
+		var levels: Array = inst._get_levels()
+		var same: bool = levels == LevelsRegistry.ALL
+		inst.queue_free()
+		if not same:
+			_check(false, "6.1 %s _get_levels != LevelsRegistry.ALL" % p)
+			return
+	_check(true, "6.1 LevelsRegistry single source: 3 entries, all levels match")
 
 func _check(ok: bool, name: String) -> void:
 	if ok:

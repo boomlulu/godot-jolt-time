@@ -1,11 +1,5 @@
 extends BaseLevel
 
-const LEVELS := [
-	{"name": "新手引导", "scene": "res://world.tscn"},
-	{"name": "第二关·钥匙", "scene": "res://level_02.tscn"},
-	{"name": "第三关", "scene": "res://level_03.tscn"},
-]
-
 @onready var _actor_timeline: Timeline = $ActorTimeline
 @onready var _box_timeline: Timeline = $BoxTimeline
 @onready var _actor: CharacterBody3D = $Actor
@@ -209,9 +203,6 @@ func _trigger_game_over() -> void:
 func _on_restart() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
-
-func _get_levels() -> Array:
-	return LEVELS
 
 func _on_door_entered(body: Node3D) -> void:
 	if _door_triggered:

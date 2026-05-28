@@ -3,6 +3,7 @@ extends Node3D
 
 const BugReport := preload("res://bug_report.gd")
 const GameSettings := preload("res://game_settings.gd")
+const LevelsRegistry := preload("res://levels_registry.gd")
 
 @onready var _gm_panel = $HUD/GMPanel
 @onready var _hud_bug: Button = $HUD/BugReportButton
@@ -14,10 +15,11 @@ func _ready() -> void:
 	_hud_bug.pressed.connect(_on_bug_report)
 	_hud_exit.pressed.connect(_on_exit_pressed)
 
-# 子类必须 override
+# 默认所有关卡 LEVELS 共用；子类有特殊需求可 override
 func _get_levels() -> Array:
-	return []
+	return LevelsRegistry.ALL
 
+# 子类必须 override
 func _dump_state() -> Dictionary:
 	return {}
 

@@ -1,11 +1,5 @@
 extends BaseLevel
 
-const LEVELS := [
-	{"name": "新手引导", "scene": "res://world.tscn"},
-	{"name": "第二关·钥匙", "scene": "res://level_02.tscn"},
-	{"name": "第三关", "scene": "res://level_03.tscn"},
-]
-
 const FALL_DEATH_Y := -5.0
 
 @onready var _item_timeline: Timeline = $ItemTimeline
@@ -192,9 +186,6 @@ func _on_restart() -> void:
 func _on_win_confirmed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://world.tscn")
-
-func _get_levels() -> Array:
-	return LEVELS
 
 func _on_door_entered(body: Node3D) -> void:
 	if _door_triggered:
