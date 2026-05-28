@@ -2,6 +2,7 @@ extends Node3D
 
 const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
 const GameSettings := preload("res://game_settings.gd")
+const BugReport := preload("res://bug_report.gd")
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -16,6 +17,7 @@ const FALL_DEATH_Y := -5.0
 @onready var _camera: Camera3D = $Camera3D
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_exit: Button = $HUD/ExitButton
+@onready var _hud_bug: Button = $HUD/BugReportButton
 @onready var _hud_rewind: Button = $HUD/RewindButton
 @onready var _hud_pause: Button = $HUD/PauseButton
 @onready var _hud_timer: Label = $HUD/TimerLabel
@@ -75,6 +77,7 @@ func _ready() -> void:
 		_item_timeline.subscribe(entry.gt)
 
 	_hud_exit.pressed.connect(_on_exit_pressed)
+	_hud_bug.pressed.connect(_on_bug_report)
 	_hud_rewind.hold_started.connect(_on_rewind_started)
 	_hud_rewind.hold_ended.connect(_on_rewind_ended)
 	_hud_pause.pressed.connect(_on_pause_toggled)
@@ -256,3 +259,40 @@ func _on_gm_close() -> void:
 func _on_level_pressed(scene_path: String) -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file(scene_path)
+
+func _state_name(s: int) -> String:
+	match s:
+		Timeline.State.IDLE: return "IDLE"
+		Timeline.State.ADVANCING: return "ADVANCING"
+		Timeline.State.REWINDING: return "REWINDING"
+		Timeline.State.DRAGGING: return "DRAGGING"
+		Timeline.State.LOCKED: return "LOCKED"
+		Timeline.State.GAME_OVER: return "GAME_OVER"
+	return "?"
+
+func _item_line(label: String, item: RigidBody3D) -> String:
+	return "%s: pos=%s vel=%s freeze=%s home=(%.2f,%.2f,%.2f) amp=%.2f freq=%.2f phase=%.3f\n" % [
+		label, str(item.global_position), str(item.linear_velocity), str(item.freeze),
+		item.home_x, item.home_y, item.home_z, item.amplitude, item.frequency_hz, item.phase,
+	]
+
+func _on_bug_report() -> void:
+	var state := _item_timeline.get_game_state(_is_input_active())
+	var body := "item_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
+		_state_name(state), _item_timeline.current_time, _item_timeline.total_duration,
+		_item_timeline.max_time, _item_timeline.grey_water, str(_item_timeline.is_locked()),
+		str(_item_timeline.dragging), str(_item_timeline.rewind_held),
+	]
+	body += "actor: pos=%s vel=%s on_floor=%s\n" % [
+		str(_actor.global_position), str(_actor.velocity), str(_actor.is_on_floor()),
+	]
+	body += _item_line("item1", _item1)
+	body += _item_line("item2", _item2)
+	body += _item_line("item3", _item3)
+	body += "camera: yaw=%.2f target_yaw=%.2f\n" % [_camera.yaw_deg, _camera.target_yaw_deg]
+	var riding_name: String = "null" if _riding_platform == null else String(_riding_platform.name)
+	body += "flags: item_paused=%s rewind_held=%s riding=%s riding_last_x=%.3f door_triggered=%s input_active=%s" % [
+		str(_item_paused), str(_rewind_held), riding_name, _riding_last_x,
+		str(_door_triggered), str(_is_input_active()),
+	]
+	await BugReport.copy(_hud_bug, self, body)

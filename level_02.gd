@@ -2,6 +2,7 @@ extends Node3D
 
 const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
 const GameSettings := preload("res://game_settings.gd")
+const BugReport := preload("res://bug_report.gd")
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -18,6 +19,7 @@ const LEVELS := [
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_jump: Button = $HUD/JumpButton
 @onready var _hud_exit: Button = $HUD/ExitButton
+@onready var _hud_bug: Button = $HUD/BugReportButton
 @onready var _hud_actor_rewind: Button = $HUD/ActorRewindButton
 @onready var _hud_box_rewind: Button = $HUD/BoxRewindButton
 @onready var _hud_eye: Button = $HUD/EyeButton
@@ -73,6 +75,7 @@ func _ready() -> void:
 	_box_timeline.subscribe(_box_ghost_trail)
 	_hud_jump.pressed.connect(_actor.queue_jump)
 	_hud_exit.pressed.connect(_on_exit_pressed)
+	_hud_bug.pressed.connect(_on_bug_report)
 	_hud_actor_rewind.hold_started.connect(_on_actor_rewind_started)
 	_hud_actor_rewind.hold_ended.connect(_on_actor_rewind_ended)
 	_hud_box_rewind.hold_started.connect(_on_box_rewind_started)
@@ -303,3 +306,44 @@ func _on_gm_close() -> void:
 func _on_level_pressed(scene_path: String) -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file(scene_path)
+
+func _state_name(s: int) -> String:
+	match s:
+		Timeline.State.IDLE: return "IDLE"
+		Timeline.State.ADVANCING: return "ADVANCING"
+		Timeline.State.REWINDING: return "REWINDING"
+		Timeline.State.DRAGGING: return "DRAGGING"
+		Timeline.State.LOCKED: return "LOCKED"
+		Timeline.State.GAME_OVER: return "GAME_OVER"
+	return "?"
+
+func _on_bug_report() -> void:
+	var actor_state := _actor_timeline.get_game_state(_is_actor_inputting())
+	var box_state := _box_timeline.get_game_state(_is_box_inputting())
+	var body := "actor_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
+		_state_name(actor_state), _actor_timeline.current_time, _actor_timeline.total_duration,
+		_actor_timeline.max_time, _actor_timeline.grey_water, str(_actor_timeline.is_locked()),
+		str(_actor_timeline.dragging), str(_actor_timeline.rewind_held),
+	]
+	body += "box_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
+		_state_name(box_state), _box_timeline.current_time, _box_timeline.total_duration,
+		_box_timeline.max_time, _box_timeline.grey_water, str(_box_timeline.is_locked()),
+		str(_box_timeline.dragging), str(_box_timeline.rewind_held),
+	]
+	body += "actor: pos=%s vel=%s on_floor=%s time_controlled=%s\n" % [
+		str(_actor.global_position), str(_actor.velocity), str(_actor.is_on_floor()), str(_actor.time_controlled),
+	]
+	body += "pushbox: pos=%s vel=%s freeze=%s\n" % [
+		str(_pushbox.global_position), str(_pushbox.linear_velocity), str(_pushbox.freeze),
+	]
+	body += "camera: yaw=%.2f target_yaw=%.2f frozen=%s is_current=%s\n" % [
+		_camera.yaw_deg, _camera.target_yaw_deg, str(_camera.frozen), str(_camera.current),
+	]
+	body += "observer: yaw=%.2f pitch=%.2f is_current=%s\n" % [
+		_observer_camera.yaw_deg, _observer_camera.pitch_deg, str(_observer_camera.current),
+	]
+	body += "flags: actor_rewind=%s box_rewind=%s actor_waiting=%s box_waiting=%s has_key=%s door_triggered=%s" % [
+		str(_actor_rewind_held), str(_box_rewind_held), str(_actor_waiting_for_input),
+		str(_box_waiting_for_input), str(_has_key), str(_door_triggered),
+	]
+	await BugReport.copy(_hud_bug, self, body)

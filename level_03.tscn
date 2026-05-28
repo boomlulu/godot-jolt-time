@@ -298,6 +298,17 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 80.0
 
+[node name="BugReportButton" type="Button" parent="HUD"]
+script = ExtResource("5_touchbtn")
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 40.0
+offset_right = -140.0
+offset_bottom = 90.0
+text = "提交Bug"
+theme_override_font_sizes/font_size = 22
+
 [node name="RewindButton" type="Button" parent="HUD"]
 script = ExtResource("7_rewbtn")
 text = "回退·道具"
