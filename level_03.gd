@@ -1,6 +1,7 @@
 extends Node3D
 
 const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
+const GameSettings := preload("res://game_settings.gd")
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -68,6 +69,7 @@ func _ready() -> void:
 		entry.gt.target = entry.rb
 		entry.gt.trail_renderer = entry.tr
 		entry.gt.trail_color = trail_color
+		entry.gt.enabled = GameSettings.ITEM_GHOST_TRAIL_ENABLED
 		entry.rb.timeline = _item_timeline
 		_item_timeline.subscribe(entry.rec)
 		_item_timeline.subscribe(entry.gt)

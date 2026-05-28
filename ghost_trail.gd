@@ -10,11 +10,14 @@ var trail_renderer: MultiMeshInstance3D = null
 var trail_color: Color = Color.WHITE
 var record_enabled: bool = false
 var current_time: float = 0.0
+var enabled: bool = true
 
 var _ghosts: Array = []
 var _next_spawn_time: float = 0.0
 
 func _physics_process(_delta: float) -> void:
+	if not enabled:
+		return
 	if not record_enabled or not target:
 		return
 	if current_time < _next_spawn_time:
@@ -45,6 +48,9 @@ func update_visuals(t: float, grey: float) -> void:
 	if not trail_renderer or not trail_renderer.multimesh:
 		return
 	var mm := trail_renderer.multimesh
+	if not enabled:
+		mm.visible_instance_count = 0
+		return
 	var visible := 0
 	for g in _ghosts:
 		if visible >= GHOST_COUNT:

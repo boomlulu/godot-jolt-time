@@ -1,6 +1,7 @@
 extends Node3D
 
 const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
+const GameSettings := preload("res://game_settings.gd")
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -62,6 +63,7 @@ func _ready() -> void:
 	_box_ghost_trail.target = _pushbox
 	_box_ghost_trail.trail_renderer = _box_trail
 	_box_ghost_trail.trail_color = Color(1.0, 0.7, 0.4, 1.0)
+	_box_ghost_trail.enabled = GameSettings.ITEM_GHOST_TRAIL_ENABLED
 	_camera.target = _actor
 	_observer_camera.target = _actor
 	_actor_timeline.subscribe(_actor_recorder)

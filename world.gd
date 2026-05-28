@@ -7,6 +7,7 @@ const LEVELS := [
 ]
 
 const _TOUCH_BUTTON_SCRIPT := preload("res://touch_button.gd")
+const GameSettings := preload("res://game_settings.gd")
 
 @onready var _timeline: Timeline = $Timeline
 @onready var _actor: CharacterBody3D = $Actor
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_box_ghost_trail.target = _pushbox
 	_box_ghost_trail.trail_renderer = _box_trail
 	_box_ghost_trail.trail_color = Color(1.0, 0.7, 0.4, 1.0)
+	_box_ghost_trail.enabled = GameSettings.ITEM_GHOST_TRAIL_ENABLED
 	_camera.target = _actor
 	_observer_camera.target = _actor
 	_timeline.subscribe(_actor_recorder)
