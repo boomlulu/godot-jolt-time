@@ -1,7 +1,16 @@
-[gd_scene format=3 uid="uid://dlvl03placeholdr1"]
+[gd_scene load_steps=46 format=3 uid="uid://befahc2ft848s"]
 
 [ext_resource type="Script" path="res://level_03.gd" id="1_lv03"]
-[ext_resource type="Script" path="res://touch_button.gd" id="2_touchbtn"]
+[ext_resource type="Script" path="res://actor.gd" id="2_actor"]
+[ext_resource type="Script" path="res://camera_rig.gd" id="3_camera"]
+[ext_resource type="Script" path="res://virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://touch_button.gd" id="5_touchbtn"]
+[ext_resource type="Script" path="res://recorder.gd" id="6_rewind"]
+[ext_resource type="Script" path="res://rewind_button.gd" id="7_rewbtn"]
+[ext_resource type="Script" path="res://timeline_bar.gd" id="8_timeline"]
+[ext_resource type="Script" path="res://timeline.gd" id="9_tlcore"]
+[ext_resource type="Script" path="res://ghost_trail.gd" id="10_ghost"]
+[ext_resource type="Script" path="res://level_03_item.gd" id="11_item"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lv03"]
 sky_horizon_color = Color(0.65, 0.55, 0.85, 1)
@@ -16,41 +25,440 @@ sky = SubResource("Sky_lv03")
 ambient_light_source = 3
 ambient_light_energy = 0.5
 
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(4, 0.2, 30)
+
+[sub_resource type="BoxShape3D" id="BoxShape_floor"]
+size = Vector3(4, 0.2, 30)
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.42, 0.42, 0.48, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_long"]
+size = Vector3(0.2, 3, 30)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_long"]
+size = Vector3(0.2, 3, 30)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_end"]
+size = Vector3(4, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_end"]
+size = Vector3(4, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_doorside"]
+size = Vector3(1, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_doorside"]
+size = Vector3(1, 3, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.7, 0.72, 0.78, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_player"]
+size = Vector3(0.8, 1.6, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_player"]
+size = Vector3(0.8, 1.6, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_player"]
+albedo_color = Color(0.3, 0.6, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_marker"]
+size = Vector3(0.3, 0.25, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="Mat_marker"]
+albedo_color = Color(0.95, 0.2, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_item"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_item"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_item_hit"]
+size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_item"]
+albedo_color = Color(1, 0.55, 0.15, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(1, 0.55, 0.15, 1)
+emission_energy_multiplier = 0.2
+
+[sub_resource type="StandardMaterial3D" id="Mat_ghost"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghost_item"]
+material = SubResource("Mat_ghost")
+size = Vector3(1, 1, 1)
+
+[sub_resource type="MultiMesh" id="ItemGhostMM1"]
+transform_format = 1
+use_colors = true
+instance_count = 6
+visible_instance_count = 0
+mesh = SubResource("BoxMesh_ghost_item")
+
+[sub_resource type="MultiMesh" id="ItemGhostMM2"]
+transform_format = 1
+use_colors = true
+instance_count = 6
+visible_instance_count = 0
+mesh = SubResource("BoxMesh_ghost_item")
+
+[sub_resource type="MultiMesh" id="ItemGhostMM3"]
+transform_format = 1
+use_colors = true
+instance_count = 6
+visible_instance_count = 0
+mesh = SubResource("BoxMesh_ghost_item")
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+size = Vector3(2.0, 3.0, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape_door_trigger"]
+size = Vector3(2.0, 3.0, 1.0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_door"]
+albedo_color = Color(0.55, 0.12, 0.12, 1)
+roughness = 0.6
+emission_enabled = true
+emission = Color(0.6, 0.1, 0.1, 1)
+emission_energy_multiplier = 0.3
+
 [node name="Level03" type="Node3D"]
 script = ExtResource("1_lv03")
+
+[node name="ItemTimeline" type="Node" parent="."]
+script = ExtResource("9_tlcore")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_lv03")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape_floor")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("BoxMesh_wall_long")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("BoxShape_wall_long")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("BoxMesh_wall_long")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("BoxShape_wall_long")
+
+[node name="WallNorth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -15)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth"]
+mesh = SubResource("BoxMesh_wall_end")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallNorth"]
+shape = SubResource("BoxShape_wall_end")
+
+[node name="WallSouthLeft" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.5, 15)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouthLeft"]
+mesh = SubResource("BoxMesh_wall_doorside")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouthLeft"]
+shape = SubResource("BoxShape_wall_doorside")
+
+[node name="WallSouthRight" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.5, 15)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouthRight"]
+mesh = SubResource("BoxMesh_wall_doorside")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallSouthRight"]
+shape = SubResource("BoxShape_wall_doorside")
+
+[node name="Door" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 14)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Door"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("Mat_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Door"]
+shape = SubResource("BoxShape_door_trigger")
+
+[node name="Actor" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -13)
+script = ExtResource("2_actor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Actor"]
+mesh = SubResource("BoxMesh_player")
+surface_material_override/0 = SubResource("Mat_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actor"]
+shape = SubResource("BoxShape_player")
+
+[node name="FrontMarker" type="MeshInstance3D" parent="Actor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.475)
+mesh = SubResource("BoxMesh_marker")
+surface_material_override/0 = SubResource("Mat_marker")
+
+[node name="Item1" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -5)
+mass = 1.5
+linear_damp = 2.0
+angular_damp = 4.0
+script = ExtResource("11_item")
+home_z = -5.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Item1"]
+mesh = SubResource("BoxMesh_item")
+surface_material_override/0 = SubResource("Mat_item")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item1"]
+shape = SubResource("BoxShape_item")
+
+[node name="HitBox" type="Area3D" parent="Item1"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item1/HitBox"]
+shape = SubResource("BoxShape_item_hit")
+
+[node name="Recorder" type="Node" parent="Item1"]
+script = ExtResource("6_rewind")
+
+[node name="GhostTrail" type="Node" parent="Item1"]
+script = ExtResource("10_ghost")
+
+[node name="Item2" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mass = 1.5
+linear_damp = 2.0
+angular_damp = 4.0
+script = ExtResource("11_item")
+home_z = 0.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Item2"]
+mesh = SubResource("BoxMesh_item")
+surface_material_override/0 = SubResource("Mat_item")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item2"]
+shape = SubResource("BoxShape_item")
+
+[node name="HitBox" type="Area3D" parent="Item2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item2/HitBox"]
+shape = SubResource("BoxShape_item_hit")
+
+[node name="Recorder" type="Node" parent="Item2"]
+script = ExtResource("6_rewind")
+
+[node name="GhostTrail" type="Node" parent="Item2"]
+script = ExtResource("10_ghost")
+
+[node name="Item3" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
+mass = 1.5
+linear_damp = 2.0
+angular_damp = 4.0
+script = ExtResource("11_item")
+home_z = 5.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Item3"]
+mesh = SubResource("BoxMesh_item")
+surface_material_override/0 = SubResource("Mat_item")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item3"]
+shape = SubResource("BoxShape_item")
+
+[node name="HitBox" type="Area3D" parent="Item3"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Item3/HitBox"]
+shape = SubResource("BoxShape_item_hit")
+
+[node name="Recorder" type="Node" parent="Item3"]
+script = ExtResource("6_rewind")
+
+[node name="GhostTrail" type="Node" parent="Item3"]
+script = ExtResource("10_ghost")
+
+[node name="ItemTrail1" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("ItemGhostMM1")
+
+[node name="ItemTrail2" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("ItemGhostMM2")
+
+[node name="ItemTrail3" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("ItemGhostMM3")
 
 [node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 7.8, -5)
+script = ExtResource("3_camera")
 fov = 60.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="TitleLabel" type="Label" parent="HUD"]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -60.0
-offset_right = 240.0
-offset_bottom = 60.0
-text = "第三关
-（制作中）"
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 56
+[node name="Joystick" type="Control" parent="HUD"]
+script = ExtResource("4_joystick")
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -280.0
+offset_right = 280.0
+offset_bottom = -40.0
 
-[node name="BackButton" type="Button" parent="HUD"]
-script = ExtResource("2_touchbtn")
-text = "返回"
+[node name="Base" type="ColorRect" parent="HUD/Joystick"]
+mouse_filter = 2
+color = Color(0.15, 0.15, 0.15, 0.45)
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Thumb" type="ColorRect" parent="HUD/Joystick"]
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 0.85)
+offset_left = 90.0
+offset_top = 90.0
+offset_right = 150.0
+offset_bottom = 150.0
+
+[node name="ExitButton" type="Button" parent="HUD"]
+script = ExtResource("5_touchbtn")
+text = "退出"
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -120.0
 offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 80.0
+
+[node name="RewindButton" type="Button" parent="HUD"]
+script = ExtResource("7_rewbtn")
+text = "回退·道具"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -280.0
+offset_right = -40.0
+offset_bottom = -220.0
+
+[node name="TimerLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 30.0
+offset_right = 180.0
+offset_bottom = 120.0
+text = "00:15:000"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+
+[node name="TipsLabel" type="Label" parent="HUD"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -30.0
+offset_right = 240.0
+offset_bottom = 30.0
+text = "这段历史无法修改"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+
+[node name="TimelineBar" type="Control" parent="HUD"]
+script = ExtResource("8_timeline")
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 130.0
+offset_right = -40.0
+offset_bottom = 160.0
+
+[node name="GameOverDialog" type="AcceptDialog" parent="HUD"]
+process_mode = 3
+title = "游戏结束"
+size = Vector2i(420, 200)
+ok_button_text = "重新开始"
+dialog_text = "时间到，游戏结束"
+
+[node name="WinDialog" type="AcceptDialog" parent="HUD"]
+process_mode = 3
+title = "过关！"
+size = Vector2i(420, 200)
+ok_button_text = "返回大厅"
+dialog_text = "成功穿越走廊，过关！"
+
+[node name="GMButton" type="Button" parent="HUD"]
+script = ExtResource("5_touchbtn")
+text = "GM"
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 120.0
+offset_bottom = 100.0
+
+[node name="GMPanel" type="Control" parent="HUD"]
+visible = false
+mouse_filter = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Backdrop" type="ColorRect" parent="HUD/GMPanel"]
+mouse_filter = 0
+color = Color(0, 0, 0, 0.6)
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CenterBox" type="PanelContainer" parent="HUD/GMPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -200.0
+offset_right = 240.0
+offset_bottom = 200.0
+
+[node name="VBox" type="VBoxContainer" parent="HUD/GMPanel/CenterBox"]
+
+[node name="TitleLabel" type="Label" parent="HUD/GMPanel/CenterBox/VBox"]
+text = "GM 面板 - 选择关卡"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="LevelButtons" type="VBoxContainer" parent="HUD/GMPanel/CenterBox/VBox"]
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="HUD/GMPanel/CenterBox/VBox"]
+script = ExtResource("5_touchbtn")
+text = "关闭"
+custom_minimum_size = Vector2(0, 60)
