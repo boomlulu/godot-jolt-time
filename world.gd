@@ -1,7 +1,6 @@
 extends BaseLevel
 
 @onready var _timeline: Timeline = $Timeline
-@onready var _actor: CharacterBody3D = $Actor
 @onready var _pushbox: RigidBody3D = $PushBox
 @onready var _camera: Camera3D = $Camera3D
 @onready var _observer_camera: Camera3D = $ObserverCamera
@@ -19,10 +18,8 @@ extends BaseLevel
 @onready var _box_ghost_trail: GhostTrail = $PushBox/GhostTrail
 @onready var _actor_trail: MultiMeshInstance3D = $ActorTrail
 @onready var _box_trail: MultiMeshInstance3D = $BoxTrail
-@onready var _door: Area3D = $Door
 
 var _rewind_held: bool = false
-var _door_triggered: bool = false
 var _waiting_for_input: bool = true
 
 func _ready() -> void:
@@ -51,7 +48,6 @@ func _ready() -> void:
 	_hud_eye.hold_started.connect(_on_eye_started)
 	_hud_eye.hold_ended.connect(_on_eye_ended)
 	_hud_dialog.confirmed.connect(_on_restart)
-	_door.body_entered.connect(_on_door_entered)
 	_timeline.drag_state_changed.connect(_on_drag_state_changed)
 	_hud_timeline.bind_timeline(_timeline)
 	_hud_tips.visible = false
@@ -130,16 +126,8 @@ func _trigger_game_over() -> void:
 	get_tree().paused = true
 	_hud_dialog.popup_centered()
 
-func _on_restart() -> void:
-	get_tree().paused = false
-	get_tree().reload_current_scene()
-
-func _on_door_entered(body: Node3D) -> void:
-	if _door_triggered:
-		return
-	if body == _actor:
-		_door_triggered = true
-		get_tree().change_scene_to_file("res://level_02.tscn")
+func _on_door_passed() -> void:
+	get_tree().change_scene_to_file("res://level_02.tscn")
 
 func _on_rewind_started() -> void:
 	_rewind_held = true

@@ -3,7 +3,6 @@ extends BaseLevel
 const FALL_DEATH_Y := -5.0
 
 @onready var _item_timeline: Timeline = $ItemTimeline
-@onready var _actor: CharacterBody3D = $Actor
 @onready var _camera: Camera3D = $Camera3D
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_rewind: Button = $HUD/RewindButton
@@ -13,7 +12,6 @@ const FALL_DEATH_Y := -5.0
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
 @onready var _hud_win: AcceptDialog = $HUD/WinDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
-@onready var _door: Area3D = $Door
 
 @onready var _item1: RigidBody3D = $Item1
 @onready var _item2: RigidBody3D = $Item2
@@ -30,7 +28,6 @@ const FALL_DEATH_Y := -5.0
 
 var _rewind_held: bool = false
 var _item_paused: bool = false
-var _door_triggered: bool = false
 var _game_over: bool = false
 var _won: bool = false
 
@@ -67,7 +64,6 @@ func _ready() -> void:
 	_hud_pause.text = "暂停道具"
 	_hud_dialog.confirmed.connect(_on_restart)
 	_hud_win.confirmed.connect(_on_win_confirmed)
-	_door.body_entered.connect(_on_door_entered)
 	_hud_timeline.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
 	_item_timeline.push_visuals()
@@ -179,20 +175,11 @@ func _trigger_win() -> void:
 	get_tree().paused = true
 	_hud_win.popup_centered()
 
-func _on_restart() -> void:
-	get_tree().paused = false
-	get_tree().reload_current_scene()
-
 func _on_win_confirmed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://world.tscn")
 
-func _on_door_entered(body: Node3D) -> void:
-	if _door_triggered:
-		return
-	if body != _actor:
-		return
-	_door_triggered = true
+func _on_door_passed() -> void:
 	_trigger_win()
 
 func _on_rewind_started() -> void:

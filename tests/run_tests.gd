@@ -45,6 +45,9 @@ func _ready() -> void:
 	await _test_6_levels_registry_single_source()
 	_test_6_motion_epsilon_constant()
 	await _test_6_pushbox_has_activity()
+	await _test_6_door_triggered_template()
+	await _test_6_door_blocked_without_key()
+	await _test_6_door_ignores_non_actor()
 	_print_summary_and_quit()
 
 # B: KINEMATIC freeze RigidBody3D 即使 linear_velocity 非零也不算 motion
@@ -441,6 +444,50 @@ func _test_6_pushbox_has_activity() -> void:
 			return
 	_check(true, "6.3 PushBox has_activity() works for world + level_02")
 
+func _test_6_door_triggered_template() -> void:
+	# 用 level_03 测，_on_door_passed=_trigger_win 不切场景，更安全
+	var packed := load("res://level_03.tscn")
+	var inst = packed.instantiate()
+	add_child(inst)
+	await get_tree().physics_frame
+	var actor: CharacterBody3D = inst.get_node("Actor")
+	var before: bool = inst._door_triggered
+	inst._handle_door_body_entered(actor)
+	var after: bool = inst._door_triggered
+	var won: bool = inst._won
+	inst.queue_free()
+	# _trigger_win 会 pause，手动清掉
+	get_tree().paused = false
+	var ok: bool = (not before) and after and won
+	_check(ok, "6.4 BaseLevel door template: door pass triggers _on_door_passed (l03 win)")
+
+func _test_6_door_blocked_without_key() -> void:
+	# level_02 没 key 时 door blocked，_door_triggered 保持 false
+	var packed := load("res://level_02.tscn")
+	var inst = packed.instantiate()
+	add_child(inst)
+	await get_tree().physics_frame
+	var actor: CharacterBody3D = inst.get_node("Actor")
+	inst._has_key = false
+	inst._handle_door_body_entered(actor)
+	var ok: bool = not inst._door_triggered
+	inst.queue_free()
+	_check(ok, "6.5 BaseLevel door blocked: no key -> _door_triggered stays false")
+
+func _test_6_door_ignores_non_actor() -> void:
+	# 非 actor 触发 → 不算
+	var packed := load("res://level_03.tscn")
+	var inst = packed.instantiate()
+	add_child(inst)
+	await get_tree().physics_frame
+	var fake: Node3D = Node3D.new()
+	add_child(fake)
+	inst._handle_door_body_entered(fake)
+	var ok: bool = not inst._door_triggered
+	fake.queue_free()
+	inst.queue_free()
+	_check(ok, "6.6 door template: non-actor body ignored")
+
 func _check(ok: bool, name: String) -> void:
 	if ok:
 		_passes += 1
@@ -544,9 +591,9 @@ func _test_5_l02_door_locked_without_key() -> void:
 	var actor: CharacterBody3D = inst.get_node("Actor")
 	inst._has_key = false
 	var triggered_before: bool = inst._door_triggered
-	inst._on_door_entered(actor)
+	inst._handle_door_body_entered(actor)
 	var triggered_after: bool = inst._door_triggered
-	# 没 key 时 _on_door_entered 应只显示 tip 不切场景。_door_triggered 应保持 false
+	# 没 key 时 door 应只显示 tip 不切场景。_door_triggered 应保持 false
 	var ok: bool = (not triggered_before) and (not triggered_after)
 	inst.queue_free()
 	_check(ok, "5.5 L02 door no-key: _door_triggered stays false")
