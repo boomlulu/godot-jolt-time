@@ -209,27 +209,49 @@ func _state_name(s: int) -> String:
 		Timeline.State.GAME_OVER: return "GAME_OVER"
 	return "?"
 
-func _on_bug_report() -> void:
+func _dump_state() -> Dictionary:
 	var input_active := _is_player_inputting()
 	var state := _timeline.get_game_state(input_active)
-	var body := "timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind_held=%s game_over=%s\n" % [
-		_state_name(state), _timeline.current_time, _timeline.total_duration, _timeline.max_time,
-		_timeline.grey_water, str(_timeline.is_locked()), str(_timeline.dragging),
-		str(_timeline.rewind_held), str(_timeline.game_over),
-	]
-	body += "actor: pos=%s vel=%s on_floor=%s time_controlled=%s\n" % [
-		str(_actor.global_position), str(_actor.velocity), str(_actor.is_on_floor()), str(_actor.time_controlled),
-	]
-	body += "pushbox: pos=%s vel=%s freeze=%s\n" % [
-		str(_pushbox.global_position), str(_pushbox.linear_velocity), str(_pushbox.freeze),
-	]
-	body += "camera: yaw=%.2f target_yaw=%.2f frozen=%s is_current=%s\n" % [
-		_camera.yaw_deg, _camera.target_yaw_deg, str(_camera.frozen), str(_camera.current),
-	]
-	body += "observer: yaw=%.2f pitch=%.2f is_current=%s\n" % [
-		_observer_camera.yaw_deg, _observer_camera.pitch_deg, str(_observer_camera.current),
-	]
-	body += "flags: waiting_for_input=%s rewind_held=%s door_triggered=%s" % [
-		str(_waiting_for_input), str(_rewind_held), str(_door_triggered),
-	]
-	await BugReport.copy(_hud_bug, self, body)
+	return {
+		"timeline": {
+			"state": _state_name(state),
+			"current": _timeline.current_time,
+			"total": _timeline.total_duration,
+			"max": _timeline.max_time,
+			"grey": _timeline.grey_water,
+			"locked": _timeline.is_locked(),
+			"dragging": _timeline.dragging,
+			"rewind_held": _timeline.rewind_held,
+			"game_over": _timeline.game_over,
+		},
+		"actor": {
+			"pos": _actor.global_position,
+			"vel": _actor.velocity,
+			"on_floor": _actor.is_on_floor(),
+			"time_controlled": _actor.time_controlled,
+		},
+		"pushbox": {
+			"pos": _pushbox.global_position,
+			"vel": _pushbox.linear_velocity,
+			"freeze": _pushbox.freeze,
+		},
+		"camera": {
+			"yaw": _camera.yaw_deg,
+			"target_yaw": _camera.target_yaw_deg,
+			"frozen": _camera.frozen,
+			"is_current": _camera.current,
+		},
+		"observer": {
+			"yaw": _observer_camera.yaw_deg,
+			"pitch": _observer_camera.pitch_deg,
+			"is_current": _observer_camera.current,
+		},
+		"flags": {
+			"waiting_for_input": _waiting_for_input,
+			"rewind_held": _rewind_held,
+			"door_triggered": _door_triggered,
+		},
+	}
+
+func _on_bug_report() -> void:
+	await BugReport.copy_dict(_hud_bug, self, _dump_state())

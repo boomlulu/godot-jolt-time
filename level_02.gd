@@ -307,33 +307,61 @@ func _state_name(s: int) -> String:
 		Timeline.State.GAME_OVER: return "GAME_OVER"
 	return "?"
 
-func _on_bug_report() -> void:
+func _dump_state() -> Dictionary:
 	var actor_state := _actor_timeline.get_game_state(_is_actor_inputting())
 	var box_state := _box_timeline.get_game_state(_is_box_inputting())
-	var body := "actor_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
-		_state_name(actor_state), _actor_timeline.current_time, _actor_timeline.total_duration,
-		_actor_timeline.max_time, _actor_timeline.grey_water, str(_actor_timeline.is_locked()),
-		str(_actor_timeline.dragging), str(_actor_timeline.rewind_held),
-	]
-	body += "box_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
-		_state_name(box_state), _box_timeline.current_time, _box_timeline.total_duration,
-		_box_timeline.max_time, _box_timeline.grey_water, str(_box_timeline.is_locked()),
-		str(_box_timeline.dragging), str(_box_timeline.rewind_held),
-	]
-	body += "actor: pos=%s vel=%s on_floor=%s time_controlled=%s\n" % [
-		str(_actor.global_position), str(_actor.velocity), str(_actor.is_on_floor()), str(_actor.time_controlled),
-	]
-	body += "pushbox: pos=%s vel=%s freeze=%s\n" % [
-		str(_pushbox.global_position), str(_pushbox.linear_velocity), str(_pushbox.freeze),
-	]
-	body += "camera: yaw=%.2f target_yaw=%.2f frozen=%s is_current=%s\n" % [
-		_camera.yaw_deg, _camera.target_yaw_deg, str(_camera.frozen), str(_camera.current),
-	]
-	body += "observer: yaw=%.2f pitch=%.2f is_current=%s\n" % [
-		_observer_camera.yaw_deg, _observer_camera.pitch_deg, str(_observer_camera.current),
-	]
-	body += "flags: actor_rewind=%s box_rewind=%s actor_waiting=%s box_waiting=%s has_key=%s door_triggered=%s" % [
-		str(_actor_rewind_held), str(_box_rewind_held), str(_actor_waiting_for_input),
-		str(_box_waiting_for_input), str(_has_key), str(_door_triggered),
-	]
-	await BugReport.copy(_hud_bug, self, body)
+	return {
+		"actor_timeline": {
+			"state": _state_name(actor_state),
+			"current": _actor_timeline.current_time,
+			"total": _actor_timeline.total_duration,
+			"max": _actor_timeline.max_time,
+			"grey": _actor_timeline.grey_water,
+			"locked": _actor_timeline.is_locked(),
+			"dragging": _actor_timeline.dragging,
+			"rewind": _actor_timeline.rewind_held,
+		},
+		"box_timeline": {
+			"state": _state_name(box_state),
+			"current": _box_timeline.current_time,
+			"total": _box_timeline.total_duration,
+			"max": _box_timeline.max_time,
+			"grey": _box_timeline.grey_water,
+			"locked": _box_timeline.is_locked(),
+			"dragging": _box_timeline.dragging,
+			"rewind": _box_timeline.rewind_held,
+		},
+		"actor": {
+			"pos": _actor.global_position,
+			"vel": _actor.velocity,
+			"on_floor": _actor.is_on_floor(),
+			"time_controlled": _actor.time_controlled,
+		},
+		"pushbox": {
+			"pos": _pushbox.global_position,
+			"vel": _pushbox.linear_velocity,
+			"freeze": _pushbox.freeze,
+		},
+		"camera": {
+			"yaw": _camera.yaw_deg,
+			"target_yaw": _camera.target_yaw_deg,
+			"frozen": _camera.frozen,
+			"is_current": _camera.current,
+		},
+		"observer": {
+			"yaw": _observer_camera.yaw_deg,
+			"pitch": _observer_camera.pitch_deg,
+			"is_current": _observer_camera.current,
+		},
+		"flags": {
+			"actor_rewind": _actor_rewind_held,
+			"box_rewind": _box_rewind_held,
+			"actor_waiting": _actor_waiting_for_input,
+			"box_waiting": _box_waiting_for_input,
+			"has_key": _has_key,
+			"door_triggered": _door_triggered,
+		},
+	}
+
+func _on_bug_report() -> void:
+	await BugReport.copy_dict(_hud_bug, self, _dump_state())

@@ -260,29 +260,57 @@ func _state_name(s: int) -> String:
 		Timeline.State.GAME_OVER: return "GAME_OVER"
 	return "?"
 
-func _item_line(label: String, item: RigidBody3D) -> String:
-	return "%s: pos=%s vel=%s freeze=%s home=(%.2f,%.2f,%.2f) amp=%.2f freq=%.2f phase=%.3f\n" % [
-		label, str(item.global_position), str(item.linear_velocity), str(item.freeze),
-		item.home_x, item.home_y, item.home_z, item.amplitude, item.frequency_hz, item.phase,
-	]
+func _item_dict(label: String, item: RigidBody3D) -> Dictionary:
+	return {
+		"name": label,
+		"pos": item.global_position,
+		"vel": item.linear_velocity,
+		"freeze": item.freeze,
+		"home_x": item.home_x,
+		"home_y": item.home_y,
+		"home_z": item.home_z,
+		"amp": item.amplitude,
+		"freq": item.frequency_hz,
+		"phase": item.phase,
+	}
+
+func _dump_state() -> Dictionary:
+	var state := _item_timeline.get_game_state(_is_input_active())
+	var riding_name: String = "null" if _riding_platform == null else String(_riding_platform.name)
+	return {
+		"item_timeline": {
+			"state": _state_name(state),
+			"current": _item_timeline.current_time,
+			"total": _item_timeline.total_duration,
+			"max": _item_timeline.max_time,
+			"grey": _item_timeline.grey_water,
+			"locked": _item_timeline.is_locked(),
+			"dragging": _item_timeline.dragging,
+			"rewind": _item_timeline.rewind_held,
+		},
+		"actor": {
+			"pos": _actor.global_position,
+			"vel": _actor.velocity,
+			"on_floor": _actor.is_on_floor(),
+		},
+		"items": [
+			_item_dict("Item1", _item1),
+			_item_dict("Item2", _item2),
+			_item_dict("Item3", _item3),
+		],
+		"camera": {
+			"yaw": _camera.yaw_deg,
+			"target_yaw": _camera.target_yaw_deg,
+		},
+		"flags": {
+			"item_paused": _item_paused,
+			"rewind_held": _rewind_held,
+			"riding": riding_name,
+			"riding_last_x": _riding_last_x,
+			"door_triggered": _door_triggered,
+			"input_active": _is_input_active(),
+		},
+	}
 
 func _on_bug_report() -> void:
-	var state := _item_timeline.get_game_state(_is_input_active())
-	var body := "item_timeline: state=%s current=%.3f total=%.3f max=%.3f grey=%.3f locked=%s dragging=%s rewind=%s\n" % [
-		_state_name(state), _item_timeline.current_time, _item_timeline.total_duration,
-		_item_timeline.max_time, _item_timeline.grey_water, str(_item_timeline.is_locked()),
-		str(_item_timeline.dragging), str(_item_timeline.rewind_held),
-	]
-	body += "actor: pos=%s vel=%s on_floor=%s\n" % [
-		str(_actor.global_position), str(_actor.velocity), str(_actor.is_on_floor()),
-	]
-	body += _item_line("item1", _item1)
-	body += _item_line("item2", _item2)
-	body += _item_line("item3", _item3)
-	body += "camera: yaw=%.2f target_yaw=%.2f\n" % [_camera.yaw_deg, _camera.target_yaw_deg]
-	var riding_name: String = "null" if _riding_platform == null else String(_riding_platform.name)
-	body += "flags: item_paused=%s rewind_held=%s riding=%s riding_last_x=%.3f door_triggered=%s input_active=%s" % [
-		str(_item_paused), str(_rewind_held), riding_name, _riding_last_x,
-		str(_door_triggered), str(_is_input_active()),
-	]
-	await BugReport.copy(_hud_bug, self, body)
+	await BugReport.copy_dict(_hud_bug, self, _dump_state())
