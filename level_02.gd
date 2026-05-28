@@ -8,19 +8,23 @@ const LEVELS := [
 	{"name": "第三关", "scene": "res://level_03.tscn"},
 ]
 
-@onready var _timeline: Timeline = $Timeline
+@onready var _actor_timeline: Timeline = $ActorTimeline
+@onready var _box_timeline: Timeline = $BoxTimeline
 @onready var _actor: CharacterBody3D = $Actor
+@onready var _pushbox: RigidBody3D = $PushBox
 @onready var _camera: Camera3D = $Camera3D
 @onready var _observer_camera: Camera3D = $ObserverCamera
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_jump: Button = $HUD/JumpButton
 @onready var _hud_exit: Button = $HUD/ExitButton
-@onready var _hud_rewind: Button = $HUD/RewindButton
+@onready var _hud_actor_rewind: Button = $HUD/ActorRewindButton
+@onready var _hud_box_rewind: Button = $HUD/BoxRewindButton
 @onready var _hud_eye: Button = $HUD/EyeButton
 @onready var _hud_timer: Label = $HUD/TimerLabel
 @onready var _hud_tips: Label = $HUD/TipsLabel
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
-@onready var _hud_timeline: Control = $HUD/TimelineBar
+@onready var _hud_actor_timeline: Control = $HUD/ActorTimelineBar
+@onready var _hud_box_timeline: Control = $HUD/BoxTimelineBar
 @onready var _hud_gm_button: Button = $HUD/GMButton
 @onready var _hud_gm_panel: Control = $HUD/GMPanel
 @onready var _hud_gm_close: Button = $HUD/GMPanel/CenterBox/VBox/CloseButton
@@ -30,13 +34,18 @@ const LEVELS := [
 @onready var _actor_recorder: Recorder = $Actor/Recorder
 @onready var _actor_ghost_trail: GhostTrail = $Actor/GhostTrail
 @onready var _actor_trail: MultiMeshInstance3D = $ActorTrail
+@onready var _box_recorder: Recorder = $PushBox/Recorder
+@onready var _box_ghost_trail: GhostTrail = $PushBox/GhostTrail
+@onready var _box_trail: MultiMeshInstance3D = $BoxTrail
 @onready var _door: Area3D = $Door
 @onready var _key: Area3D = $Key
 @onready var _key_mesh: MeshInstance3D = $Key/MeshInstance3D
 
-var _rewind_held: bool = false
+var _actor_rewind_held: bool = false
+var _box_rewind_held: bool = false
 var _door_triggered: bool = false
-var _waiting_for_input: bool = true
+var _actor_waiting_for_input: bool = true
+var _box_waiting_for_input: bool = true
 var _has_key: bool = false
 var _key_base_y: float = -5.0
 var _key_time: float = 0.0
@@ -49,15 +58,23 @@ func _ready() -> void:
 	_actor_ghost_trail.target = _actor
 	_actor_ghost_trail.trail_renderer = _actor_trail
 	_actor_ghost_trail.trail_color = Color(0.4, 0.7, 1.0, 1.0)
+	_box_recorder.target = _pushbox
+	_box_ghost_trail.target = _pushbox
+	_box_ghost_trail.trail_renderer = _box_trail
+	_box_ghost_trail.trail_color = Color(1.0, 0.7, 0.4, 1.0)
 	_camera.target = _actor
 	_observer_camera.target = _actor
-	_timeline.subscribe(_actor_recorder)
-	_timeline.subscribe(_actor_ghost_trail)
-	_timeline.subscribe(_camera)
+	_actor_timeline.subscribe(_actor_recorder)
+	_actor_timeline.subscribe(_actor_ghost_trail)
+	_actor_timeline.subscribe(_camera)
+	_box_timeline.subscribe(_box_recorder)
+	_box_timeline.subscribe(_box_ghost_trail)
 	_hud_jump.pressed.connect(_actor.queue_jump)
 	_hud_exit.pressed.connect(_on_exit_pressed)
-	_hud_rewind.hold_started.connect(_on_rewind_started)
-	_hud_rewind.hold_ended.connect(_on_rewind_ended)
+	_hud_actor_rewind.hold_started.connect(_on_actor_rewind_started)
+	_hud_actor_rewind.hold_ended.connect(_on_actor_rewind_ended)
+	_hud_box_rewind.hold_started.connect(_on_box_rewind_started)
+	_hud_box_rewind.hold_ended.connect(_on_box_rewind_ended)
 	_hud_eye.hold_started.connect(_on_eye_started)
 	_hud_eye.hold_ended.connect(_on_eye_ended)
 	_hud_dialog.confirmed.connect(_on_restart)
@@ -65,47 +82,78 @@ func _ready() -> void:
 	_hud_gm_close.pressed.connect(_on_gm_close)
 	_door.body_entered.connect(_on_door_entered)
 	_key.body_entered.connect(_on_key_entered)
-	_timeline.drag_state_changed.connect(_on_drag_state_changed)
-	_hud_timeline.bind_timeline(_timeline)
+	_actor_timeline.drag_state_changed.connect(_on_actor_drag_state_changed)
+	_box_timeline.drag_state_changed.connect(_on_box_drag_state_changed)
+	_hud_actor_timeline.bind_timeline(_actor_timeline)
+	_hud_box_timeline.bind_timeline(_box_timeline)
 	_hud_tips.visible = false
 	_hud_key_status.visible = false
 	_hud_door_locked.visible = false
 	_key_base_y = _key.position.y
 	_populate_levels()
 	_update_timer_label()
-	_timeline.push_visuals()
+	_actor_timeline.push_visuals()
+	_box_timeline.push_visuals()
 
 func _physics_process(delta: float) -> void:
 	_camera.tick_yaw(delta)
-	_timeline.rewind_held = _rewind_held
-	var input_active := _is_player_inputting()
-	var state := _timeline.get_game_state(input_active)
+	_actor_timeline.rewind_held = _actor_rewind_held
+	_box_timeline.rewind_held = _box_rewind_held
+	_tick_actor_timeline(delta)
+	_tick_box_timeline(delta)
+
+func _tick_actor_timeline(delta: float) -> void:
+	var input_active := _is_actor_inputting()
+	var state := _actor_timeline.get_game_state(input_active)
 	match state:
 		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
-			_apply_freeze(true)
-			_timeline.disable_recording()
+			_apply_actor_freeze(true)
+			_actor_timeline.disable_recording()
 		Timeline.State.REWINDING:
-			_apply_freeze(true)
-			_timeline.disable_recording()
-			_timeline.step_backward(delta)
+			_apply_actor_freeze(true)
+			_actor_timeline.disable_recording()
+			_actor_timeline.step_backward(delta)
 		Timeline.State.ADVANCING:
-			_waiting_for_input = false
-			_apply_freeze(false)
-			_timeline.advance(delta)
-			if _timeline.current_time >= _timeline.total_duration:
+			_actor_waiting_for_input = false
+			_apply_actor_freeze(false)
+			_actor_timeline.advance(delta)
+			if _actor_timeline.current_time >= _actor_timeline.total_duration:
 				_trigger_game_over()
 		Timeline.State.IDLE:
-			if _waiting_for_input:
-				_apply_freeze(true)
+			if _actor_waiting_for_input:
+				_apply_actor_freeze(true)
 			else:
-				_apply_freeze(false)
-			_timeline.disable_recording()
+				_apply_actor_freeze(false)
+			_actor_timeline.disable_recording()
+
+func _tick_box_timeline(delta: float) -> void:
+	var input_active := _is_box_inputting()
+	var state := _box_timeline.get_game_state(input_active)
+	match state:
+		Timeline.State.GAME_OVER, Timeline.State.DRAGGING, Timeline.State.LOCKED:
+			_apply_box_freeze(true)
+			_box_timeline.disable_recording()
+		Timeline.State.REWINDING:
+			_apply_box_freeze(true)
+			_box_timeline.disable_recording()
+			_box_timeline.step_backward(delta)
+		Timeline.State.ADVANCING:
+			_box_waiting_for_input = false
+			_apply_box_freeze(false)
+			_box_timeline.advance(delta)
+		Timeline.State.IDLE:
+			if _box_waiting_for_input:
+				_apply_box_freeze(true)
+			else:
+				_apply_box_freeze(false)
+			_box_timeline.disable_recording()
 
 func _process(delta: float) -> void:
-	_timeline.push_visuals()
+	_actor_timeline.push_visuals()
+	_box_timeline.push_visuals()
 	_update_timer_label()
-	var locked := _timeline.is_locked()
-	_hud_tips.visible = locked and not _timeline.dragging
+	var locked := _actor_timeline.is_locked() or _box_timeline.is_locked()
+	_hud_tips.visible = locked and not _actor_timeline.dragging and not _box_timeline.dragging
 	if locked:
 		_hud_timer.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
 	else:
@@ -116,18 +164,28 @@ func _process(delta: float) -> void:
 		_key.rotate_y(delta * 2.0)
 		_key.position.y = _key_base_y + sin(_key_time * 3.0) * 0.2
 
-func _apply_freeze(freeze: bool) -> void:
+func _apply_actor_freeze(freeze: bool) -> void:
 	_actor.time_controlled = freeze
 	_camera.frozen = freeze
 
-func _is_player_inputting() -> bool:
+func _apply_box_freeze(freeze: bool) -> void:
+	_pushbox.freeze = freeze
+
+func _is_actor_inputting() -> bool:
 	if _has_direct_input():
 		return true
-	if _waiting_for_input:
+	if _actor_waiting_for_input:
 		return false
 	if not _actor.is_on_floor():
 		return true
 	if Rewindable.has_motion(_actor):
+		return true
+	return false
+
+func _is_box_inputting() -> bool:
+	if _box_waiting_for_input:
+		return false
+	if Rewindable.has_motion(_pushbox):
 		return true
 	return false
 
@@ -144,12 +202,16 @@ func _has_direct_input() -> bool:
 		return true
 	return false
 
-func _on_drag_state_changed(dragging: bool) -> void:
+func _on_actor_drag_state_changed(dragging: bool) -> void:
 	if not dragging:
-		_waiting_for_input = true
+		_actor_waiting_for_input = true
+
+func _on_box_drag_state_changed(dragging: bool) -> void:
+	if not dragging:
+		_box_waiting_for_input = true
 
 func _update_timer_label() -> void:
-	var remaining := maxf(0.0, _timeline.total_duration - _timeline.current_time)
+	var remaining := maxf(0.0, _actor_timeline.total_duration - _actor_timeline.current_time)
 	var total_ms := int(remaining * 1000.0)
 	var m := total_ms / 60000
 	var s := (total_ms / 1000) % 60
@@ -157,7 +219,8 @@ func _update_timer_label() -> void:
 	_hud_timer.text = "%02d:%02d:%03d" % [m, s, ms]
 
 func _trigger_game_over() -> void:
-	_timeline.mark_game_over()
+	_actor_timeline.mark_game_over()
+	_box_timeline.mark_game_over()
 	get_tree().paused = true
 	_hud_dialog.popup_centered()
 
@@ -201,11 +264,17 @@ func _show_door_locked() -> void:
 	_door_locked_tween.tween_property(_hud_door_locked, "modulate:a", 0.0, 0.5)
 	_door_locked_tween.tween_callback(func(): _hud_door_locked.visible = false)
 
-func _on_rewind_started() -> void:
-	_rewind_held = true
+func _on_actor_rewind_started() -> void:
+	_actor_rewind_held = true
 
-func _on_rewind_ended() -> void:
-	_rewind_held = false
+func _on_actor_rewind_ended() -> void:
+	_actor_rewind_held = false
+
+func _on_box_rewind_started() -> void:
+	_box_rewind_held = true
+
+func _on_box_rewind_ended() -> void:
+	_box_rewind_held = false
 
 func _on_eye_started() -> void:
 	_observer_camera.sync_from(_camera.yaw_deg, 45.0)

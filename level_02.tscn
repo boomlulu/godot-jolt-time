@@ -110,6 +110,26 @@ instance_count = 6
 visible_instance_count = 0
 mesh = SubResource("BoxMesh_ghost_actor")
 
+[sub_resource type="BoxMesh" id="BoxMesh_pushbox"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_pushbox"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_pushbox"]
+albedo_color = Color(1, 0.55, 0.15, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghost_box"]
+material = SubResource("Mat_ghost")
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="MultiMesh" id="BoxGhostMM"]
+transform_format = 1
+use_colors = true
+instance_count = 6
+visible_instance_count = 0
+mesh = SubResource("BoxMesh_ghost_box")
+
 [sub_resource type="BoxMesh" id="BoxMesh_door"]
 size = Vector3(0.3, 3.0, 2.0)
 
@@ -140,7 +160,10 @@ emission_energy_multiplier = 1.0
 [node name="Level02" type="Node3D"]
 script = ExtResource("1_lv02")
 
-[node name="Timeline" type="Node" parent="."]
+[node name="ActorTimeline" type="Node" parent="."]
+script = ExtResource("9_tlcore")
+
+[node name="BoxTimeline" type="Node" parent="."]
 script = ExtResource("9_tlcore")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -295,6 +318,28 @@ script = ExtResource("10_ghost")
 [node name="ActorTrail" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("ActorGhostMM")
 
+[node name="PushBox" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mass = 1.0
+linear_damp = 2.0
+angular_damp = 4.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="PushBox"]
+mesh = SubResource("BoxMesh_pushbox")
+surface_material_override/0 = SubResource("Mat_pushbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PushBox"]
+shape = SubResource("BoxShape_pushbox")
+
+[node name="Recorder" type="Node" parent="PushBox"]
+script = ExtResource("6_rewind")
+
+[node name="GhostTrail" type="Node" parent="PushBox"]
+script = ExtResource("10_ghost")
+
+[node name="BoxTrail" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("BoxGhostMM")
+
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, -6, 7.8, 7)
 script = ExtResource("3_camera")
@@ -353,9 +398,9 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 80.0
 
-[node name="RewindButton" type="Button" parent="HUD"]
+[node name="ActorRewindButton" type="Button" parent="HUD"]
 script = ExtResource("7_rewbtn")
-text = "回退时间"
+text = "回退·角色"
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -363,6 +408,18 @@ anchor_bottom = 1.0
 offset_left = -200.0
 offset_top = -280.0
 offset_right = -40.0
+offset_bottom = -220.0
+
+[node name="BoxRewindButton" type="Button" parent="HUD"]
+script = ExtResource("7_rewbtn")
+text = "回退·道具"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -280.0
+offset_right = -220.0
 offset_bottom = -220.0
 
 [node name="EyeButton" type="Button" parent="HUD"]
@@ -433,13 +490,39 @@ vertical_alignment = 1
 theme_override_font_sizes/font_size = 44
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 
-[node name="TimelineBar" type="Control" parent="HUD"]
+[node name="ActorTimelineBar" type="Control" parent="HUD"]
 script = ExtResource("8_timeline")
 anchor_right = 1.0
 offset_left = 40.0
 offset_top = 130.0
 offset_right = -40.0
 offset_bottom = 160.0
+
+[node name="ActorTimelineLabel" type="Label" parent="HUD"]
+offset_left = 40.0
+offset_top = 108.0
+offset_right = 200.0
+offset_bottom = 130.0
+text = "角色"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+
+[node name="BoxTimelineBar" type="Control" parent="HUD"]
+script = ExtResource("8_timeline")
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 195.0
+offset_right = -40.0
+offset_bottom = 225.0
+
+[node name="BoxTimelineLabel" type="Label" parent="HUD"]
+offset_left = 40.0
+offset_top = 173.0
+offset_right = 200.0
+offset_bottom = 195.0
+text = "道具"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.7, 0.4, 1)
 
 [node name="GameOverDialog" type="AcceptDialog" parent="HUD"]
 process_mode = 3
