@@ -1,7 +1,4 @@
-extends Node3D
-
-const GameSettings := preload("res://game_settings.gd")
-const BugReport := preload("res://bug_report.gd")
+extends BaseLevel
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -15,8 +12,6 @@ const FALL_DEATH_Y := -5.0
 @onready var _actor: CharacterBody3D = $Actor
 @onready var _camera: Camera3D = $Camera3D
 @onready var _hud_joystick: Control = $HUD/Joystick
-@onready var _hud_exit: Button = $HUD/ExitButton
-@onready var _hud_bug: Button = $HUD/BugReportButton
 @onready var _hud_rewind: Button = $HUD/RewindButton
 @onready var _hud_pause: Button = $HUD/PauseButton
 @onready var _hud_timer: Label = $HUD/TimerLabel
@@ -24,7 +19,6 @@ const FALL_DEATH_Y := -5.0
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
 @onready var _hud_win: AcceptDialog = $HUD/WinDialog
 @onready var _hud_timeline: Control = $HUD/TimelineBar
-@onready var _gm_panel: Control = $HUD/GMPanel
 @onready var _door: Area3D = $Door
 
 @onready var _item1: RigidBody3D = $Item1
@@ -51,6 +45,7 @@ var _riding_platform: RigidBody3D = null
 var _riding_last_x: float = 0.0
 
 func _ready() -> void:
+	super._ready()
 	_actor.joystick = _hud_joystick
 	_actor.camera = _camera
 	_camera.target = _actor
@@ -72,16 +67,12 @@ func _ready() -> void:
 		_item_timeline.subscribe(entry.rec)
 		_item_timeline.subscribe(entry.gt)
 
-	_hud_exit.pressed.connect(_on_exit_pressed)
-	_hud_bug.pressed.connect(_on_bug_report)
 	_hud_rewind.hold_started.connect(_on_rewind_started)
 	_hud_rewind.hold_ended.connect(_on_rewind_ended)
 	_hud_pause.pressed.connect(_on_pause_toggled)
 	_hud_pause.text = "暂停道具"
 	_hud_dialog.confirmed.connect(_on_restart)
 	_hud_win.confirmed.connect(_on_win_confirmed)
-	_gm_panel.set_levels(LEVELS)
-	_gm_panel.level_chosen.connect(_on_level_pressed)
 	_door.body_entered.connect(_on_door_entered)
 	_hud_timeline.bind_timeline(_item_timeline)
 	_hud_tips.visible = false
@@ -202,9 +193,8 @@ func _on_win_confirmed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://world.tscn")
 
-func _on_exit_pressed() -> void:
-	get_tree().quit()
-	OS.kill(OS.get_process_id())
+func _get_levels() -> Array:
+	return LEVELS
 
 func _on_door_entered(body: Node3D) -> void:
 	if _door_triggered:
@@ -223,20 +213,6 @@ func _on_rewind_ended() -> void:
 func _on_pause_toggled() -> void:
 	_item_paused = not _item_paused
 	_hud_pause.text = "恢复道具" if _item_paused else "暂停道具"
-
-func _on_level_pressed(scene_path: String) -> void:
-	get_tree().paused = false
-	get_tree().change_scene_to_file(scene_path)
-
-func _state_name(s: int) -> String:
-	match s:
-		Timeline.State.IDLE: return "IDLE"
-		Timeline.State.ADVANCING: return "ADVANCING"
-		Timeline.State.REWINDING: return "REWINDING"
-		Timeline.State.DRAGGING: return "DRAGGING"
-		Timeline.State.LOCKED: return "LOCKED"
-		Timeline.State.GAME_OVER: return "GAME_OVER"
-	return "?"
 
 func _item_dict(label: String, item: RigidBody3D) -> Dictionary:
 	return {
@@ -289,6 +265,3 @@ func _dump_state() -> Dictionary:
 			"input_active": _is_input_active(),
 		},
 	}
-
-func _on_bug_report() -> void:
-	await BugReport.copy_dict(_hud_bug, self, _dump_state())

@@ -1,7 +1,4 @@
-extends Node3D
-
-const GameSettings := preload("res://game_settings.gd")
-const BugReport := preload("res://bug_report.gd")
+extends BaseLevel
 
 const LEVELS := [
 	{"name": "新手引导", "scene": "res://world.tscn"},
@@ -17,8 +14,6 @@ const LEVELS := [
 @onready var _observer_camera: Camera3D = $ObserverCamera
 @onready var _hud_joystick: Control = $HUD/Joystick
 @onready var _hud_jump: Button = $HUD/JumpButton
-@onready var _hud_exit: Button = $HUD/ExitButton
-@onready var _hud_bug: Button = $HUD/BugReportButton
 @onready var _hud_actor_rewind: Button = $HUD/ActorRewindButton
 @onready var _hud_box_rewind: Button = $HUD/BoxRewindButton
 @onready var _hud_eye: Button = $HUD/EyeButton
@@ -27,7 +22,6 @@ const LEVELS := [
 @onready var _hud_dialog: AcceptDialog = $HUD/GameOverDialog
 @onready var _hud_actor_timeline: Control = $HUD/ActorTimelineBar
 @onready var _hud_box_timeline: Control = $HUD/BoxTimelineBar
-@onready var _gm_panel: Control = $HUD/GMPanel
 @onready var _hud_key_status: Label = $HUD/KeyStatusLabel
 @onready var _hud_door_locked: Label = $HUD/DoorLockedLabel
 @onready var _actor_recorder: Recorder = $Actor/Recorder
@@ -51,6 +45,7 @@ var _key_time: float = 0.0
 var _door_locked_tween: Tween = null
 
 func _ready() -> void:
+	super._ready()
 	_actor.joystick = _hud_joystick
 	_actor.camera = _camera
 	_actor_recorder.target = _actor
@@ -70,8 +65,6 @@ func _ready() -> void:
 	_box_timeline.subscribe(_box_recorder)
 	_box_timeline.subscribe(_box_ghost_trail)
 	_hud_jump.pressed.connect(_actor.queue_jump)
-	_hud_exit.pressed.connect(_on_exit_pressed)
-	_hud_bug.pressed.connect(_on_bug_report)
 	_hud_actor_rewind.hold_started.connect(_on_actor_rewind_started)
 	_hud_actor_rewind.hold_ended.connect(_on_actor_rewind_ended)
 	_hud_box_rewind.hold_started.connect(_on_box_rewind_started)
@@ -79,8 +72,6 @@ func _ready() -> void:
 	_hud_eye.hold_started.connect(_on_eye_started)
 	_hud_eye.hold_ended.connect(_on_eye_ended)
 	_hud_dialog.confirmed.connect(_on_restart)
-	_gm_panel.set_levels(LEVELS)
-	_gm_panel.level_chosen.connect(_on_level_pressed)
 	_door.body_entered.connect(_on_door_entered)
 	_key.body_entered.connect(_on_key_entered)
 	_actor_timeline.drag_state_changed.connect(_on_actor_drag_state_changed)
@@ -219,9 +210,8 @@ func _on_restart() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
-func _on_exit_pressed() -> void:
-	get_tree().quit()
-	OS.kill(OS.get_process_id())
+func _get_levels() -> Array:
+	return LEVELS
 
 func _on_door_entered(body: Node3D) -> void:
 	if _door_triggered:
@@ -273,20 +263,6 @@ func _on_eye_started() -> void:
 
 func _on_eye_ended() -> void:
 	_camera.current = true
-
-func _on_level_pressed(scene_path: String) -> void:
-	get_tree().paused = false
-	get_tree().change_scene_to_file(scene_path)
-
-func _state_name(s: int) -> String:
-	match s:
-		Timeline.State.IDLE: return "IDLE"
-		Timeline.State.ADVANCING: return "ADVANCING"
-		Timeline.State.REWINDING: return "REWINDING"
-		Timeline.State.DRAGGING: return "DRAGGING"
-		Timeline.State.LOCKED: return "LOCKED"
-		Timeline.State.GAME_OVER: return "GAME_OVER"
-	return "?"
 
 func _dump_state() -> Dictionary:
 	var actor_state := _actor_timeline.get_game_state(_is_actor_inputting())
@@ -343,6 +319,3 @@ func _dump_state() -> Dictionary:
 			"door_triggered": _door_triggered,
 		},
 	}
-
-func _on_bug_report() -> void:
-	await BugReport.copy_dict(_hud_bug, self, _dump_state())
