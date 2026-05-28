@@ -13,7 +13,11 @@ static func capture(target: Node3D, time: float) -> StateFrame:
 		av = (target as RigidBody3D).angular_velocity
 	elif target is CharacterBody3D:
 		lv = (target as CharacterBody3D).velocity
-	return StateFrame.new(time, target.global_transform, lv, av)
+	var frame := StateFrame.new(time, target.global_transform, lv, av)
+	# target 可选 hook：返回自定义状态 dict，rewind 时一并恢复
+	if target.has_method("on_capture"):
+		frame.custom = target.on_capture()
+	return frame
 
 static func apply(target: Node3D, frame: StateFrame) -> void:
 	target.global_transform = frame.transform
@@ -22,6 +26,8 @@ static func apply(target: Node3D, frame: StateFrame) -> void:
 		(target as RigidBody3D).angular_velocity = frame.angular_v
 	elif target is CharacterBody3D:
 		(target as CharacterBody3D).velocity = frame.linear_v
+	if target.has_method("on_restore"):
+		target.on_restore(frame.custom)
 
 static func has_motion(target: Node3D, epsilon: float = MOTION_EPSILON) -> bool:
 	if target is RigidBody3D:
