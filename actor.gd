@@ -2,7 +2,6 @@ extends CharacterBody3D
 
 const SPEED := 5.0
 const JUMP_VELOCITY := 6.0
-const GRAVITY := 18.0
 const PUSH_FORCE := 15.0
 const ACCEL := 28.0
 const DECEL := 32.0
@@ -42,7 +41,8 @@ func _physics_process(delta: float) -> void:
 		return
 
 	if not is_on_floor():
-		velocity.y -= GRAVITY * delta
+		var g: Vector3 = GravityManager.resolve_gravity(global_position)
+		velocity += g * delta
 
 	if _jump_queued and is_on_floor():
 		velocity.y = JUMP_VELOCITY
