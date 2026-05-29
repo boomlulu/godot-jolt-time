@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://chudbase3dv1"]
+[gd_scene format=3 uid="uid://chudbase3dv1"]
 
 [ext_resource type="Script" path="res://virtual_joystick.gd" id="1_joystick"]
 [ext_resource type="Script" path="res://touch_button.gd" id="2_touchbtn"]

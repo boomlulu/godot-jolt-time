@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://cgmpanel3dscenev1"]
+[gd_scene format=3 uid="uid://cjrjam043jyl5"]
 
 [ext_resource type="Script" path="res://gm_panel.gd" id="1_gmpanel"]
 [ext_resource type="Script" path="res://touch_button.gd" id="2_touchbtn"]

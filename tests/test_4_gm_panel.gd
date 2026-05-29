@@ -59,7 +59,7 @@ func _test_4_levels_have_gm_panel(runner: Node) -> void:
 		var gm = inst.get_node_or_null("HUD/HUDBase/GMPanel")
 		if gm != null:
 			var level_buttons = gm.get_node_or_null("PanelOverlay/CenterBox/VBox/LevelButtons")
-			if level_buttons == null or level_buttons.get_child_count() != 3:
+			if level_buttons == null or level_buttons.get_child_count() != 4:
 				all_ok = false
 		inst.queue_free()
-	runner._check(all_ok, "4.4 all 3 levels have GMPanel instance with 3 populated buttons")
+	runner._check(all_ok, "4.4 all 3 levels have GMPanel instance with 4 populated buttons")
