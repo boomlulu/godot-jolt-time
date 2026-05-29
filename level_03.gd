@@ -32,8 +32,7 @@ var _game_over: bool = false
 var _won: bool = false
 
 var _items: Array = []
-var _riding_platform: RigidBody3D = null
-var _riding_last_x: float = 0.0
+var _carry: CarryRelation = null
 
 func _ready() -> void:
 	super._ready()
@@ -84,31 +83,31 @@ func _physics_process(delta: float) -> void:
 	_carry_actor_on_platform()
 
 func _carry_actor_on_platform() -> void:
-	# delta-based carry: 玩家踩在 platform 上时跟随 platform 的 x 平移
-	# 时机：在 platform _physics_process 推进之后调用，此时 platform 已到新位置
+	# delta-based carry: 玩家踩 platform 上时跟随其平移
+	# 时机：root _physics_process 内调用（树序早于 Item，故 ~1 帧滞后，平台慢可忽略）
 	var current_ride := _detect_ride()
-	if current_ride != null and current_ride == _riding_platform:
-		var dx: float = current_ride.global_position.x - _riding_last_x
-		if absf(dx) > 0.0:
-			_actor.global_position.x += dx
-	_riding_platform = current_ride
-	if current_ride != null:
-		_riding_last_x = current_ride.global_position.x
+	if current_ride == null:
+		_carry = null
+		return
+	if _carry == null or _carry.platform != current_ride:
+		_carry = CarryRelation.new(_actor, current_ride)
+		return  # 新踩上：先锚定，本帧不搬
+	_carry.update()
 
-func _detect_ride() -> RigidBody3D:
-	# 从 actor 脚底向下射线检测，命中的若是已知 platform 则返回
+func _detect_ride() -> Node3D:
+	# actor 脚底向下射线，命中体在 "platform" 组则可搭乘
+	# 注：actor 盒高 1.6（脚底 origin -0.8），射线须到 -0.9 才够得着脚下平台
 	var space := _actor.get_world_3d().direct_space_state
 	var from := _actor.global_position + Vector3(0, 0.1, 0)
-	var to := _actor.global_position + Vector3(0, -0.6, 0)
+	var to := _actor.global_position + Vector3(0, -0.9, 0)
 	var query := PhysicsRayQueryParameters3D.create(from, to)
 	query.exclude = [_actor.get_rid()]
 	var hit := space.intersect_ray(query)
 	if hit.is_empty():
 		return null
 	var body = hit.collider
-	for item in _items:
-		if item == body:
-			return item
+	if body is Node3D and (body as Node3D).is_in_group("platform"):
+		return body
 	return null
 
 func _check_fall_off() -> void:
@@ -202,7 +201,7 @@ func _item_dict(label: String, item: RigidBody3D) -> Dictionary:
 
 func _dump_state() -> Dictionary:
 	var state := _item_timeline.get_game_state(_is_input_active())
-	var riding_name: String = "null" if _riding_platform == null else String(_riding_platform.name)
+	var riding_name: String = "null" if _carry == null else String(_carry.platform.name)
 	return {
 		"item_timeline": {
 			"state": _state_name(state),
@@ -232,7 +231,7 @@ func _dump_state() -> Dictionary:
 			"item_paused": _item_paused,
 			"rewind_held": _rewind_held,
 			"riding": riding_name,
-			"riding_last_x": _riding_last_x,
+			"riding_x": 0.0 if _carry == null else _carry.platform.global_position.x,
 			"door_triggered": _door_triggered,
 			"input_active": _is_input_active(),
 		},

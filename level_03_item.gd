@@ -13,6 +13,7 @@ var timeline: Timeline = null
 func _ready() -> void:
 	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 	freeze = true
+	add_to_group("platform")
 
 # KINEMATIC freeze 节点不算物理活动源。
 # 它们的运动完全由 sine 规律驱动，规律开关由 level 端的 _item_paused 表达。

@@ -54,16 +54,16 @@ func _test_5_l03_carry_actor_follows_platform(runner: Node) -> void:
 	await runner.get_tree().physics_frame
 	var actor: CharacterBody3D = inst.get_node("Actor")
 	var item1: RigidBody3D = inst.get_node("Item1")
-	# 把 actor 放到 item1 正上方贴近 item top（item 顶面 y=0，actor 半高 0.8 → 中心 y=0.8，ray 0.9→0.2 命中 item）
-	# 注：item 顶面 y=0，actor center 必须 ≤ 0.6 才能让 ray (center+0.1 → center-0.6) 触及 item top；
-	# 但那会和 item 碰撞穿插。改用直接 teleport 到 y=0.5（轻微穿插，BoxShape 容差通常允许），并停 physics 1 帧后再调用 carry。
-	actor.global_position = Vector3(item1.global_position.x, 0.5, item1.global_position.z)
+	# 站稳高度：item 顶面 y=0，actor 半高 0.8 → center y=0.8；射线 0.9→-0.1 命中 item 顶
+	actor.global_position = Vector3(item1.global_position.x, 0.8, item1.global_position.z)
 	actor.velocity = Vector3.ZERO
-	# 不 await physics_frame，避免 level_03._physics_process 跑掉、重置 _riding_platform 并把 actor 顶飞
-	# 直接进入测试
-	inst._riding_platform = item1
-	inst._riding_last_x = item1.global_position.x - 0.5
+	# 不 await physics_frame，避免 level._physics_process 跑掉重置 _carry
+	# 第一次 carry：锚定 _carry 到 item1（本帧不搬）
+	inst._carry_actor_on_platform()
+	# 模拟平台右移 0.5
+	item1.global_position.x += 0.5
 	var actor_x0: float = actor.global_position.x
+	# 第二次 carry：update() 把 actor 搬 +0.5
 	inst._carry_actor_on_platform()
 	var actor_x1: float = actor.global_position.x
 	var dx: float = actor_x1 - actor_x0
