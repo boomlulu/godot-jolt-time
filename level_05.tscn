@@ -1,0 +1,225 @@
+[gd_scene load_steps=30 format=3]
+
+[ext_resource type="Script" path="res://level_05.gd" id="1_lv05"]
+[ext_resource type="Script" path="res://actor.gd" id="2_actor"]
+[ext_resource type="Script" path="res://camera_rig.gd" id="3_camera"]
+[ext_resource type="Script" path="res://platform_mover.gd" id="4_platform"]
+[ext_resource type="PackedScene" path="res://hud_base.tscn" id="5_hudbase"]
+[ext_resource type="Script" path="res://timeline.gd" id="6_timeline"]
+[ext_resource type="Script" path="res://timeline_bar.gd" id="7_tlbar"]
+[ext_resource type="Script" path="res://rewind_button.gd" id="8_rewbtn"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lv05"]
+sky_horizon_color = Color(0.55, 0.7, 0.8, 1)
+ground_horizon_color = Color(0.35, 0.45, 0.5, 1)
+
+[sub_resource type="Sky" id="Sky_lv05"]
+sky_material = SubResource("ProceduralSkyMaterial_lv05")
+
+[sub_resource type="Environment" id="Environment_lv05"]
+background_mode = 2
+sky = SubResource("Sky_lv05")
+ambient_light_source = 3
+ambient_light_energy = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_platform"]
+size = Vector3(4, 0.5, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape_platform"]
+size = Vector3(4, 0.5, 4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_platform"]
+albedo_color = Color(0.2, 0.75, 0.6, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_player"]
+size = Vector3(0.8, 1.6, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_player"]
+size = Vector3(0.8, 1.6, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_player"]
+albedo_color = Color(0.3, 0.6, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_marker"]
+size = Vector3(0.3, 0.25, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="Mat_marker"]
+albedo_color = Color(0.95, 0.2, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+size = Vector3(0.3, 3.0, 2.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape_door"]
+size = Vector3(1.0, 3.0, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_door"]
+albedo_color = Color(0.55, 0.12, 0.12, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="BoxShape3D" id="BoxShape_ground"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ground"]
+albedo_color = Color(0.32, 0.34, 0.4, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+size = Vector3(0.6, 4, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_pillar"]
+albedo_color = Color(0.95, 0.85, 0.2, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(0.95, 0.8, 0.15, 1)
+emission_energy_multiplier = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_home"]
+size = Vector3(4, 0.06, 4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_home"]
+albedo_color = Color(0.85, 0.2, 0.2, 1)
+roughness = 0.7
+emission_enabled = true
+emission = Color(0.8, 0.15, 0.15, 1)
+emission_energy_multiplier = 0.3
+
+[node name="Level05" type="Node3D"]
+script = ExtResource("1_lv05")
+
+[node name="Timeline" type="Node" parent="."]
+script = ExtResource("6_timeline")
+total_duration = 60.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lv05")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+shadow_enabled = true
+
+[node name="MovingPlatform" type="AnimatableBody3D" parent="."]
+sync_to_physics = true
+script = ExtResource("4_platform")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MovingPlatform"]
+mesh = SubResource("BoxMesh_platform")
+surface_material_override/0 = SubResource("Mat_platform")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MovingPlatform"]
+shape = SubResource("BoxShape_platform")
+
+[node name="Actor" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+script = ExtResource("2_actor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Actor"]
+mesh = SubResource("BoxMesh_player")
+surface_material_override/0 = SubResource("Mat_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actor"]
+shape = SubResource("BoxShape_player")
+
+[node name="FrontMarker" type="MeshInstance3D" parent="Actor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.475)
+mesh = SubResource("BoxMesh_marker")
+surface_material_override/0 = SubResource("Mat_marker")
+
+[node name="Door" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -30, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Door"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("Mat_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Door"]
+shape = SubResource("BoxShape_door")
+
+[node name="RefGround" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.25, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RefGround"]
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("Mat_ground")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RefGround"]
+shape = SubResource("BoxShape_ground")
+
+[node name="HomeMarker" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.72, 0)
+mesh = SubResource("BoxMesh_home")
+surface_material_override/0 = SubResource("Mat_home")
+
+[node name="RefPillars" type="Node3D" parent="."]
+
+[node name="PillarN" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -7)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarS" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 7)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarE" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.25, 0)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarW" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.25, 0)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarNE" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.25, -6)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarNW" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.25, -6)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarSE" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.25, 6)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="PillarSW" type="MeshInstance3D" parent="RefPillars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.25, 6)
+mesh = SubResource("BoxMesh_pillar")
+surface_material_override/0 = SubResource("Mat_pillar")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 7.8, -5)
+script = ExtResource("3_camera")
+fov = 60.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="HUDBase" parent="HUD" instance=ExtResource("5_hudbase")]
+
+[node name="RewindButton" type="Button" parent="HUD"]
+script = ExtResource("8_rewbtn")
+text = "回退平台"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -280.0
+offset_right = -40.0
+offset_bottom = -220.0
+
+[node name="TimelineBar" type="Control" parent="HUD"]
+script = ExtResource("7_tlbar")
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 130.0
+offset_right = -40.0
+offset_bottom = 160.0

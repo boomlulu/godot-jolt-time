@@ -14,10 +14,10 @@ func run_all(runner: Node) -> void:
 	await _test_6_tick_timeline_rewinding(runner)
 
 func _test_6_levels_registry_single_source(runner: Node) -> void:
-	# 注册表有 4 项（含第四关·平台）
+	# 注册表有 5 项（含第五关·平台时间轴）
 	var registry_size: int = LevelsRegistry.ALL.size()
-	if registry_size != 4:
-		runner._check(false, "6.1 registry size expected 4 got %d" % registry_size)
+	if registry_size != 5:
+		runner._check(false, "6.1 registry size expected 5 got %d" % registry_size)
 		return
 	# 三关 _get_levels() 返同一引用 / 同内容
 	var paths := ["res://world.tscn", "res://level_02.tscn", "res://level_03.tscn"]
@@ -32,7 +32,7 @@ func _test_6_levels_registry_single_source(runner: Node) -> void:
 		if not same:
 			runner._check(false, "6.1 %s _get_levels != LevelsRegistry.ALL" % p)
 			return
-	runner._check(true, "6.1 LevelsRegistry single source: 4 entries, all levels match")
+	runner._check(true, "6.1 LevelsRegistry single source: 5 entries, all levels match")
 
 func _test_6_motion_epsilon_constant(runner: Node) -> void:
 	# 常量定义在 Rewindable，值为 0.05

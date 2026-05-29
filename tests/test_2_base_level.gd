@@ -34,10 +34,10 @@ func _test_2_get_levels_returns_three(runner: Node) -> void:
 		runner.add_child(inst)
 		await runner.get_tree().physics_frame
 		var levels: Array = inst._get_levels()
-		if levels.size() != 4:
+		if levels.size() != 5:
 			all_ok = false
 		inst.queue_free()
-	runner._check(all_ok, "2.3 all levels _get_levels() returns 4 entries")
+	runner._check(all_ok, "2.3 all levels _get_levels() returns 5 entries")
 
 func _test_2_state_name_translates(runner: Node) -> void:
 	var packed := load("res://level_03.tscn")

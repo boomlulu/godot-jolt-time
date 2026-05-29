@@ -5,4 +5,5 @@ const ALL := [
 	{"name": "第二关·钥匙", "scene": "res://level_02.tscn"},
 	{"name": "第三关", "scene": "res://level_03.tscn"},
 	{"name": "第四关·平台", "scene": "res://level_04.tscn"},
+	{"name": "第五关·平台时间轴", "scene": "res://level_05.tscn"},
 ]

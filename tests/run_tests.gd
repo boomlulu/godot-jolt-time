@@ -20,6 +20,7 @@ const TEST_MODULES := [
 	preload("res://tests/test_14_hud_base.gd"),
 	preload("res://tests/test_15_level_config.gd"),
 	preload("res://tests/test_16_platform_carry.gd"),
+	preload("res://tests/test_17_platform_timeline.gd"),
 ]
 
 var _failures: Array = []
