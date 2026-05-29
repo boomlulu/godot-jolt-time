@@ -5,7 +5,6 @@ const JUMP_VELOCITY := 6.0
 const PUSH_FORCE := 15.0
 const ACCEL := 28.0
 const DECEL := 32.0
-const DEADZONE := 0.15
 
 var joystick: Node = null
 var camera: Camera3D = null
@@ -63,13 +62,6 @@ func _physics_process(delta: float) -> void:
 		kb.x += 1.0
 	if kb != Vector2.ZERO:
 		input = kb.normalized()
-
-	var mag := input.length()
-	if mag < DEADZONE:
-		input = Vector2.ZERO
-	else:
-		var rescaled := (mag - DEADZONE) / (1.0 - DEADZONE)
-		input = input.normalized() * minf(rescaled, 1.0)
 
 	var dir := Vector3.ZERO
 	if camera:
